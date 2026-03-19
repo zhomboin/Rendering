@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rendering Playful Clay Preview</title>
+    <meta
+      name="description"
+      content="A playful claymorphism homepage preview for the Rendering personal blog redesign."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fff8ef;
+        --bg-gradient-a: #ffd869;
+        --bg-gradient-b: #ff8d7f;
+        --bg-gradient-c: #7fd8ff;
+        --surface: #ffe9d2;
+        --surface-strong: #fff4e8;
+        --surface-alt: #c7f1ff;
+        --surface-pop: #ffb7b0;
+        --text: #3a234b;
+        --text-soft: #745f87;
+        --line: rgba(91, 56, 133, 0.12);
+        --shadow-raise:
+          14px 14px 28px rgba(182, 126, 98, 0.18),
+          -10px -10px 18px rgba(255, 255, 255, 0.84);
+        --shadow-press:
+          inset 8px 8px 16px rgba(184, 130, 105, 0.16),
+          inset -8px -8px 16px rgba(255, 255, 255, 0.78);
+        --hero-shadow:
+          22px 22px 44px rgba(188, 121, 90, 0.2),
+          -12px -12px 22px rgba(255, 255, 255, 0.76);
+        --accent-yellow: #ffcd38;
+        --accent-coral: #ff7f73;
+        --accent-blue: #5fc9ff;
+        --accent-green: #7adf91;
+        --accent-purple: #8f75ff;
+        --accent-pink: #ff6fcf;
+        --radius-xl: 36px;
+        --radius-lg: 28px;
+        --radius-md: 22px;
+        --radius-sm: 18px;
+        --container: min(1200px, calc(100vw - 32px));
+      }
+
+      html[data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #19142e;
+        --bg-gradient-a: #ff8f50;
+        --bg-gradient-b: #7b64ff;
+        --bg-gradient-c: #27c6ff;
+        --surface: #2a2147;
+        --surface-strong: #34285a;
+        --surface-alt: #233e5c;
+        --surface-pop: #5c2f61;
+        --text: #fff2fb;
+        --text-soft: #ccbfe0;
+        --line: rgba(255, 255, 255, 0.08);
+        --shadow-raise:
+          18px 18px 36px rgba(8, 7, 16, 0.42),
+          -10px -10px 24px rgba(72, 54, 120, 0.34);
+        --shadow-press:
+          inset 10px 10px 18px rgba(15, 10, 28, 0.48),
+          inset -10px -10px 18px rgba(73, 54, 118, 0.32);
+        --hero-shadow:
+          26px 26px 48px rgba(8, 7, 18, 0.48),
+          -12px -12px 24px rgba(79, 59, 132, 0.32);
+        --accent-yellow: #ffd64d;
+        --accent-coral: #ff8f7f;
+        --accent-blue: #66d5ff;
+        --accent-green: #84ec9b;
+        --accent-purple: #a493ff;
+        --accent-pink: #ff85d9;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Nunito", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 10% 12%, rgba(255, 255, 255, 0.58), transparent 24%),
+          radial-gradient(circle at 88% 10%, rgba(255, 205, 56, 0.26), transparent 24%),
+          radial-gradient(circle at 18% 82%, rgba(127, 216, 255, 0.18), transparent 22%),
+          linear-gradient(135deg, var(--bg-gradient-a), var(--bg-gradient-b) 52%, var(--bg-gradient-c));
+        background-attachment: fixed;
+      }
+
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        inset: auto;
+        border-radius: 999px;
+        filter: blur(0);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      body::before {
+        width: 240px;
+        height: 240px;
+        top: 96px;
+        left: -40px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
+        opacity: 0.7;
+      }
+
+      body::after {
+        width: 300px;
+        height: 300px;
+        right: -64px;
+        bottom: 48px;
+        background: linear-gradient(135deg, rgba(255, 111, 207, 0.22), rgba(255, 205, 56, 0.08));
+        opacity: 0.9;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        font: inherit;
+        color: inherit;
+      }
+
+      .page-shell {
+        position: relative;
+        z-index: 1;
+        width: var(--container);
+        margin: 0 auto;
+        padding: 18px 0 80px;
+      }
+
+      .progress-demo {
+        position: sticky;
+        top: 10px;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+        padding: 12px 16px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        backdrop-filter: blur(18px);
+        box-shadow: var(--shadow-raise);
+      }
+
+      .progress-label {
+        flex: 0 0 auto;
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .progress-track {
+        position: relative;
+        flex: 1;
+        height: 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.35);
+        box-shadow: var(--shadow-press);
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent-coral), var(--accent-yellow), var(--accent-blue));
+        transition: width 180ms ease;
+      }
+
+      .progress-value {
+        min-width: 46px;
+        text-align: right;
+        font-weight: 800;
+      }
+
+      .site-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 24px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(18px);
+        box-shadow: var(--shadow-raise);
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .brand-mark {
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--text-soft);
+      }
+
+      .brand-name {
+        font-family: "Bricolage Grotesque", "Nunito", sans-serif;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+
+      .nav-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .nav-pill,
+      .theme-toggle,
+      .button-primary,
+      .button-secondary,
+      .tag {
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-raise);
+      }
+
+      .nav-pill,
+      .theme-toggle,
+      .tag {
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: var(--surface-strong);
+      }
+
+      .theme-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        background: linear-gradient(180deg, var(--surface-strong), var(--surface));
+      }
+
+      .theme-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-yellow), var(--accent-pink));
+        box-shadow: inset -3px -3px 6px rgba(255, 255, 255, 0.45), inset 2px 2px 4px rgba(0, 0, 0, 0.08);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.18fr 0.82fr;
+        gap: 24px;
+        margin-top: 26px;
+      }
+
+      .hero-card,
+      .hero-stack,
+      .section-card,
+      .article-preview,
+      .post-card,
+      .sidebar-card,
+      .author-card,
+      .tag-cloud {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        background: linear-gradient(180deg, var(--surface-strong), var(--surface));
+        box-shadow: var(--hero-shadow);
+      }
+
+      .hero-card {
+        padding: 38px;
+        min-height: 430px;
+      }
+
+      .hero-card::before,
+      .hero-stack::before,
+      .post-card::before,
+      .article-preview::before {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        opacity: 0.8;
+        pointer-events: none;
+      }
+
+      .hero-card::before {
+        width: 180px;
+        height: 180px;
+        top: -36px;
+        right: -10px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
+      }
+
+      .hero-kicker,
+      .section-kicker {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.46);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        box-shadow: var(--shadow-raise);
+      }
+
+      .hero-title,
+      .section-title {
+        margin: 18px 0 12px;
+        font-family: "Bricolage Grotesque", "Nunito", sans-serif;
+        line-height: 0.94;
+        letter-spacing: -0.04em;
+      }
+
+      .hero-title {
+        font-size: clamp(3rem, 7vw, 5.7rem);
+      }
+
+      .section-title {
+        font-size: clamp(2rem, 4vw, 3.3rem);
+      }
+
+      .hero-copy,
+      .section-copy,
+      .post-copy,
+      .preview-copy,
+      .author-copy,
+      .toc-item {
+        color: var(--text-soft);
+        line-height: 1.7;
+      }
+
+      .hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+      }
+
+      .button-primary,
+      .button-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px 20px;
+        border-radius: 20px;
+        font-weight: 800;
+      }
+
+      .button-primary {
+        background: linear-gradient(135deg, var(--accent-coral), var(--accent-yellow));
+      }
+
+      .button-secondary {
+        background: linear-gradient(135deg, var(--surface-alt), var(--surface-strong));
+      }
+
+      .hero-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .hero-badge {
+        padding: 12px 14px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.38);
+        box-shadow: var(--shadow-raise);
+        font-weight: 700;
+      }
+
+      .hero-stack {
+        display: grid;
+        gap: 18px;
+        padding: 22px;
+        align-content: start;
+      }
+
+      .mini-card {
+        padding: 22px;
+        border-radius: var(--radius-lg);
+        background: linear-gradient(180deg, var(--surface-strong), rgba(255, 255, 255, 0.08));
+        box-shadow: var(--shadow-raise);
+      }
+
+      .mini-card:nth-child(1) {
+        background: linear-gradient(135deg, rgba(255, 205, 56, 0.76), rgba(255, 255, 255, 0.32));
+      }
+
+      .mini-card:nth-child(2) {
+        background: linear-gradient(135deg, rgba(95, 201, 255, 0.66), rgba(255, 255, 255, 0.22));
+      }
+
+      .mini-card:nth-child(3) {
+        background: linear-gradient(135deg, rgba(122, 223, 145, 0.66), rgba(255, 255, 255, 0.18));
+      }
+
+      .mini-card strong {
+        display: block;
+        font-size: 2rem;
+        font-family: "Bricolage Grotesque", "Nunito", sans-serif;
+      }
+
+      .section-card {
+        margin-top: 26px;
+        padding: 30px;
+      }
+
+      .post-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 22px;
+      }
+
+      .post-card {
+        padding: 22px;
+        min-height: 250px;
+      }
+
+      .post-card:nth-child(1) {
+        background: linear-gradient(180deg, rgba(255, 242, 232, 0.92), rgba(255, 183, 176, 0.84));
+      }
+
+      .post-card:nth-child(2) {
+        background: linear-gradient(180deg, rgba(255, 248, 211, 0.94), rgba(255, 205, 56, 0.88));
+      }
+
+      .post-card:nth-child(3) {
+        background: linear-gradient(180deg, rgba(217, 244, 255, 0.92), rgba(95, 201, 255, 0.84));
+      }
+
+      html[data-theme="dark"] .post-card:nth-child(1),
+      html[data-theme="dark"] .post-card:nth-child(2),
+      html[data-theme="dark"] .post-card:nth-child(3) {
+        color: #20172b;
+      }
+
+      .post-label {
+        display: inline-block;
+        padding: 9px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.52);
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .post-title {
+        margin: 18px 0 10px;
+        font-family: "Bricolage Grotesque", "Nunito", sans-serif;
+        font-size: 1.6rem;
+        line-height: 1.03;
+      }
+
+      .meta-row,
+      .tag-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .meta-pill,
+      .tag {
+        padding: 10px 13px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.48);
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+
+      .detail-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: 20px;
+        margin-top: 22px;
+      }
+
+      .article-preview {
+        padding: 24px;
+      }
+
+      .article-progress-shell {
+        padding: 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.34);
+        box-shadow: var(--shadow-press);
+      }
+
+      .article-progress-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 0.84rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .article-progress-track {
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.5);
+        overflow: hidden;
+      }
+
+      .article-progress-bar {
+        width: 68%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink), var(--accent-yellow));
+      }
+
+      .article-title-preview {
+        margin: 20px 0 12px;
+        font-family: "Bricolage Grotesque", "Nunito", sans-serif;
+        font-size: clamp(1.9rem, 3.2vw, 2.8rem);
+        line-height: 1;
+      }
+
+      .article-body-preview {
+        display: grid;
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .article-line {
+        height: 15px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.44);
+        box-shadow: var(--shadow-press);
+      }
+
+      .article-line.short {
+        width: 62%;
+      }
+
+      .article-line.mid {
+        width: 78%;
+      }
+
+      .quote-bubble {
+        padding: 18px 20px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(255, 111, 207, 0.18), rgba(255, 255, 255, 0.22));
+        box-shadow: var(--shadow-raise);
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .sidebar-card {
+        padding: 18px;
+      }
+
+      .sidebar-card + .sidebar-card {
+        margin-top: 16px;
+      }
+
+      .sidebar-title {
+        margin: 0 0 12px;
+        font-size: 1rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .toc-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .toc-item {
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: var(--shadow-raise);
+      }
+
+      .tag-cloud {
+        margin-top: 26px;
+        padding: 24px;
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .author-card {
+        display: grid;
+        grid-template-columns: 84px 1fr;
+        gap: 18px;
+        margin-top: 26px;
+        padding: 24px;
+      }
+
+      .author-avatar {
+        width: 84px;
+        height: 84px;
+        border-radius: 30px;
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+        box-shadow: var(--shadow-raise);
+      }
+
+      .author-card h3 {
+        margin: 0 0 10px;
+        font-family: "Bricolage Grotesque", "Nunito", sans-serif;
+        font-size: 1.5rem;
+      }
+
+      .footer-note {
+        margin-top: 28px;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.84);
+        font-weight: 700;
+      }
+
+      @media (max-width: 980px) {
+        .hero,
+        .detail-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .post-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .author-card {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .site-header {
+          border-radius: 30px;
+          padding: 18px;
+        }
+
+        .hero-card,
+        .section-card,
+        .hero-stack,
+        .post-card,
+        .article-preview,
+        .sidebar-card,
+        .tag-cloud,
+        .author-card {
+          border-radius: 28px;
+        }
+
+        .hero-card,
+        .section-card {
+          padding: 24px;
+        }
+
+        .progress-demo {
+          top: 6px;
+          gap: 10px;
+          padding: 10px 12px;
+        }
+
+        .progress-label {
+          display: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          scroll-behavior: auto !important;
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="progress-demo" aria-label="文章阅读进度预演">
+        <div class="progress-label">Reading Progress Demo</div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="scroll-progress"></div>
+        </div>
+        <div class="progress-value" id="scroll-progress-value">0%</div>
+      </div>
+
+      <header class="site-header">
+        <div class="brand">
+          <span class="brand-mark">Playful Personal Blog</span>
+          <span class="brand-name">Rendering</span>
+        </div>
+        <div class="nav-row">
+          <a class="nav-pill" href="#featured">精选文章</a>
+          <a class="nav-pill" href="#detail-preview">详情预览</a>
+          <a class="nav-pill" href="#author">关于作者</a>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换明暗主题">
+            <span class="theme-dot" aria-hidden="true"></span>
+            <span id="theme-toggle-text">切换到暗色</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <article class="hero-card">
+          <span class="hero-kicker">Fresh visual direction</span>
+          <h1 class="hero-title">一个会发光、会卖萌、也认真写技术的个人博客。</h1>
+          <p class="hero-copy">
+            这版首页预演把 Rendering 从冷峻终端感，切换到更有玩具感和个人表达的方向。
+            重点是鲜艳配色、黏土拟态体块、明暗双主题，以及更有“作者性格”的第一眼印象。
+          </p>
+          <div class="hero-actions">
+            <a class="button-primary" href="#featured">看趣味卡片</a>
+            <a class="button-secondary" href="#detail-preview">看详情页预演</a>
+          </div>
+          <div class="hero-badges">
+            <span class="hero-badge">黏土拟态卡片</span>
+            <span class="hero-badge">亮色默认主题</span>
+            <span class="hero-badge">暗色主题切换</span>
+            <span class="hero-badge">阅读进度跟踪</span>
+          </div>
+        </article>
+
+        <aside class="hero-stack">
+          <div class="mini-card">
+            <span class="section-kicker">Mood</span>
+            <strong>Playful</strong>
+            <p class="section-copy">更像作者的个人创作空间，而不是冷静的技术面板。</p>
+          </div>
+          <div class="mini-card">
+            <span class="section-kicker">Surface</span>
+            <strong>Clay</strong>
+            <p class="section-copy">圆润卡片、软阴影、果冻按钮和轻微压感。</p>
+          </div>
+          <div class="mini-card">
+            <span class="section-kicker">Theme</span>
+            <strong>Light + Dark</strong>
+            <p class="section-copy">同一组高饱和色彩在亮暗模式下保持一致性格。</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section-card" id="featured">
+        <span class="section-kicker">Featured Cards</span>
+        <h2 class="section-title">黏土拟态文章卡片，不再像模板站。</h2>
+        <p class="section-copy">
+          这里先演示三种卡片气质：作者视角、阅读引导和高亮主题。后续真正接入到博客列表时，
+          可以沿用这套颜色系统，但统一组件密度和卡片节奏。
+        </p>
+        <div class="post-grid">
+          <article class="post-card">
+            <span class="post-label">Design Note</span>
+            <h3 class="post-title">把博客做得像一个会呼吸的小玩具工作台</h3>
+            <p class="post-copy">
+              卡片不再只是信息盒子，而是品牌语气的一部分。它们应该有触感、情绪和节奏。
+            </p>
+            <div class="meta-row">
+              <span class="meta-pill">6 min read</span>
+              <span class="meta-pill">Clay UI</span>
+            </div>
+          </article>
+
+          <article class="post-card">
+            <span class="post-label">Reading Flow</span>
+            <h3 class="post-title">把长文阅读做成一条有反馈的彩色旅程</h3>
+            <p class="post-copy">
+              阅读进度不该只是细线条，它可以成为一个轻盈但真实的陪伴式反馈组件。
+            </p>
+            <div class="meta-row">
+              <span class="meta-pill">4 min read</span>
+              <span class="meta-pill">Progress</span>
+            </div>
+          </article>
+
+          <article class="post-card">
+            <span class="post-label">Visual System</span>
+            <h3 class="post-title">明亮主色 + 暗黑模式，不用在“有趣”和“可读”之间二选一</h3>
+            <p class="post-copy">
+              亮色负责第一眼吸引力，暗色负责夜读氛围，两套主题共享同一个性格坐标。
+            </p>
+            <div class="meta-row">
+              <span class="meta-pill">8 min read</span>
+              <span class="meta-pill">Theme</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-card" id="detail-preview">
+        <span class="section-kicker">Detail Page Preview</span>
+        <h2 class="section-title">文章详情页也要有趣，但不能打断阅读。</h2>
+        <p class="section-copy">
+          这一块不是正式文章页，而是用静态首页演示“详情页气质 + 阅读进度跟踪”的组合。
+          真正落到博客详情页时，我们可以把这条进度条做成滚动联动版本。
+        </p>
+
+        <div class="detail-layout">
+          <article class="article-preview">
+            <div class="article-progress-shell">
+              <div class="article-progress-label">
+                <span>Article Progress</span>
+                <span>68%</span>
+              </div>
+              <div class="article-progress-track" aria-hidden="true">
+                <div class="article-progress-bar"></div>
+              </div>
+            </div>
+
+            <h3 class="article-title-preview">把“看完一篇文章”做成一件有反馈的事情</h3>
+            <p class="preview-copy">
+              阅读进度的存在不是为了炫技，而是为了帮助读者理解自己在文章中的位置，降低长文带来的认知压力。
+            </p>
+
+            <div class="quote-bubble">
+              进度反馈、舒适排版和明暗主题并不冲突，它们可以一起服务于“更愿意继续读下去”。
+            </div>
+
+            <div class="article-body-preview" aria-hidden="true">
+              <div class="article-line"></div>
+              <div class="article-line mid"></div>
+              <div class="article-line"></div>
+              <div class="article-line short"></div>
+              <div class="article-line"></div>
+              <div class="article-line mid"></div>
+            </div>
+          </article>
+
+          <div>
+            <aside class="sidebar-card">
+              <h3 class="sidebar-title">目录预演</h3>
+              <div class="toc-list">
+                <div class="toc-item">为什么进度反馈会降低放弃率</div>
+                <div class="toc-item">亮色视觉里如何保持长文舒适度</div>
+                <div class="toc-item">暗色主题下的色彩压缩策略</div>
+              </div>
+            </aside>
+
+            <aside class="sidebar-card">
+              <h3 class="sidebar-title">体验关键词</h3>
+              <div class="tag-row">
+                <span class="tag">Claymorphism</span>
+                <span class="tag">Playful</span>
+                <span class="tag">Readable</span>
+                <span class="tag">Dark Mode</span>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="tag-cloud">
+        <span class="section-kicker">Topic Moodboard</span>
+        <h2 class="section-title">标签也可以像一把彩色糖豆。</h2>
+        <div class="tag-list">
+          <span class="tag">Frontend Systems</span>
+          <span class="tag">Motion Design</span>
+          <span class="tag">Reading UX</span>
+          <span class="tag">Theme Design</span>
+          <span class="tag">Design Engineering</span>
+          <span class="tag">Creative Dev</span>
+        </div>
+      </section>
+
+      <section class="author-card" id="author">
+        <div class="author-avatar" aria-hidden="true"></div>
+        <div>
+          <span class="section-kicker">Author Energy</span>
+          <h3>把技术博客做得更像一个有性格的人，而不是一个文档目录。</h3>
+          <p class="author-copy">
+            如果这条方向继续推进，下一步就该把这套视觉语言正式落到 Next.js 首页与文章详情页，
+            同时把阅读进度条做成真实滚动联动，并把明暗主题切换接进全站布局。
+          </p>
+        </div>
+      </section>
+
+      <p class="footer-note">Static preview for the Rendering redesign direction.</p>
+    </div>
+
+    <script>
+      const root = document.documentElement;
+      const themeToggle = document.getElementById("theme-toggle");
+      const themeToggleText = document.getElementById("theme-toggle-text");
+      const progressFill = document.getElementById("scroll-progress");
+      const progressValue = document.getElementById("scroll-progress-value");
+      const storageKey = "rendering-playful-preview-theme";
+
+      function applyTheme(theme) {
+        root.setAttribute("data-theme", theme);
+        themeToggleText.textContent = theme === "light" ? "切换到暗色" : "切换到亮色";
+      }
+
+      function updateScrollProgress() {
+        const scrollTop = window.scrollY;
+        const scrollRange = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = scrollRange <= 0 ? 0 : Math.min(100, Math.max(0, (scrollTop / scrollRange) * 100));
+        progressFill.style.width = progress.toFixed(1) + "%";
+        progressValue.textContent = Math.round(progress) + "%";
+      }
+
+      const savedTheme = localStorage.getItem(storageKey);
+      applyTheme(savedTheme === "dark" ? "dark" : "light");
+      updateScrollProgress();
+
+      themeToggle.addEventListener("click", () => {
+        const nextTheme = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+        localStorage.setItem(storageKey, nextTheme);
+        applyTheme(nextTheme);
+      });
+
+      window.addEventListener("scroll", updateScrollProgress, { passive: true });
+      window.addEventListener("resize", updateScrollProgress);
+    </script>
+  </body>
+</html>

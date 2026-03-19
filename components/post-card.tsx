@@ -18,10 +18,10 @@ export function PostCard({ post }: { post: PostCardData }) {
         <span className="card-label">{post.coverLabel}</span>
         <span className="meta-pill">{post.readingTime}</span>
       </div>
-      <Link href={`/blog/${post.slug}`}>
+      <Link className="card-link" href={`/blog/${post.slug}`}>
         <h3 className="card-title">{post.title}</h3>
+        <p className="card-excerpt">{post.excerpt}</p>
       </Link>
-      <p className="card-excerpt">{post.excerpt}</p>
       <div className="card-meta">
         <div className="tag-row">
           {post.tags.map((tag) => (
@@ -33,4 +33,3 @@ export function PostCard({ post }: { post: PostCardData }) {
     </article>
   );
 }
-

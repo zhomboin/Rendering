@@ -5,8 +5,8 @@ export function SiteFooter() {
     <footer className="footer">
       <div className="footer-bar">
         <div className="inline-list">
-          <span className="status-dot" aria-hidden="true" />
-          <span className="footer-copy">Rendering public node active. Thoughts still forming.</span>
+          <span aria-hidden="true" className="status-dot" />
+          <span className="footer-copy">Playful mode is live. Bright on the outside, calm for reading inside.</span>
         </div>
         <div className="footer-links">
           <Link className="nav-link" href="/about">
@@ -20,4 +20,3 @@ export function SiteFooter() {
     </footer>
   );
 }
-

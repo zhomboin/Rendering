@@ -10,19 +10,16 @@ export function ArticleMeta({
   tags: string[];
 }) {
   return (
-    <div className="section">
-      <div className="article-meta">
-        <div className="inline-list">
-          <span className="meta-pill">Published {publishedAt}</span>
-          <span className="meta-pill">{readingTime}</span>
-        </div>
-        <div className="article-tags">
-          {tags.map((tag) => (
-            <TagChip key={tag} label={tag} />
-          ))}
-        </div>
+    <div className="article-meta">
+      <div className="inline-list">
+        <span className="meta-pill">Published {publishedAt}</span>
+        <span className="meta-pill">{readingTime}</span>
+      </div>
+      <div className="article-tags">
+        {tags.map((tag) => (
+          <TagChip key={tag} label={tag} />
+        ))}
       </div>
     </div>
   );
 }
-

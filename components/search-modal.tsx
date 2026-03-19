@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SEARCH_OPEN_EVENT } from "@/lib/ui-state";
 
 type SearchResult = {
   url: string;
@@ -15,8 +16,6 @@ type SearchResult = {
     excerpt?: string;
   }>;
 };
-
-const OPEN_EVENT = "rendering:open-search";
 
 export function SearchModal() {
   const [open, setOpen] = useState(false);
@@ -84,11 +83,11 @@ export function SearchModal() {
       }
     };
 
-    window.addEventListener(OPEN_EVENT, openFromEvent);
+    window.addEventListener(SEARCH_OPEN_EVENT, openFromEvent);
     window.addEventListener("keydown", handleKeydown);
 
     return () => {
-      window.removeEventListener(OPEN_EVENT, openFromEvent);
+      window.removeEventListener(SEARCH_OPEN_EVENT, openFromEvent);
       window.removeEventListener("keydown", handleKeydown);
     };
   }, [activeResult, open, results.length]);
@@ -192,7 +191,7 @@ export function SearchModal() {
         <div className="search-modal-header">
           <div>
             <div className="section-kicker">Global Search</div>
-            <h2 className="search-modal-title">Search the Rendering archive</h2>
+            <h2 className="search-modal-title">Search the playful archive</h2>
           </div>
           <button className="search-close" onClick={closeSearch} type="button">
             Esc
@@ -204,22 +203,22 @@ export function SearchModal() {
           autoComplete="off"
           className="search-input search-modal-input"
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search by topic, term, or phrase"
+          placeholder="Search by topic, mood, or phrase"
           ref={inputRef}
           value={query}
         />
 
-        <div className="search-shortcuts">
+        <div className="search-shortcuts-row">
           <span className="meta-pill">/ focus</span>
-          <span className="meta-pill">Ctrl/Cmd + K open</span>
+          <span className="meta-pill">Ctrl/Cmd + K</span>
           <span className="meta-pill">↑ ↓ move</span>
           <span className="meta-pill">Enter open</span>
         </div>
 
         <div className="search-results" role="listbox">
-          {!query ? <p className="empty-copy">Start typing to search across the live MDX archive.</p> : null}
-          {loading ? <p className="empty-copy">Querying the Pagefind index...</p> : null}
-          {!loading && query && !hasResults ? <p className="empty-copy">No matching signal found for this query.</p> : null}
+          {!query ? <p className="empty-copy">输入关键词，看看哪篇笔记会先跳出来。</p> : null}
+          {loading ? <p className="empty-copy">正在翻找 Pagefind 索引...</p> : null}
+          {!loading && query && !hasResults ? <p className="empty-copy">这次没有找到匹配的文章，换个词试试。</p> : null}
           {!loading && hasResults
             ? results.map((result, index) => {
                 const title = result.meta?.title || result.sub_results?.[0]?.title || result.url;

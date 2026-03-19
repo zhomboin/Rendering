@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArticleMeta } from "@/components/article-meta";
 import { mdxComponents } from "@/components/mdx-components";
 import { PrevNextNav } from "@/components/prev-next-nav";
+import { ReadingProgress } from "@/components/reading-progress";
 import { TocPanel } from "@/components/toc-panel";
 import { getAdjacentPosts, getAllPostSlugs, getPostBySlug } from "@/lib/content";
 
@@ -49,11 +50,17 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
 
   const adjacent = getAdjacentPosts(post.slug);
   const Content = post.Content;
+  const articleId = `article-${post.slug}`;
 
   return (
     <>
-      <section className="section-band">
-        <div className="section-kicker">Article Node</div>
+      <ReadingProgress targetId={articleId} />
+
+      <section className="section-band article-header-band">
+        <div className="article-headline-row">
+          <div className="section-kicker">Story Capsule</div>
+          <span className="meta-pill">{post.metadata.coverLabel}</span>
+        </div>
         <h1 className="article-title" data-pagefind-meta="title">
           {post.metadata.title}
         </h1>
@@ -65,7 +72,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
       </section>
 
       <section className="article-layout section">
-        <article className="article-shell article-body mdx-body">
+        <article className="article-shell article-body mdx-body" id={articleId}>
           <Content components={mdxComponents} />
           <PrevNextNav next={adjacent.next} previous={adjacent.previous} />
         </article>
