@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { TagChip } from "@/components/tag-chip";
 
 export type PostCardData = {
@@ -11,24 +11,55 @@ export type PostCardData = {
   tags: string[];
 };
 
-export function PostCard({ post }: { post: PostCardData }) {
+type PostCardVariant = "default" | "featured" | "archive";
+
+export function PostCard({
+  post,
+  variant = "default",
+  spotlight = false
+}: {
+  post: PostCardData;
+  variant?: PostCardVariant;
+  spotlight?: boolean;
+}) {
+  const isDefault = variant === "default";
+  const label = variant === "featured" ? (spotlight ? "Lead Story" : "Fresh Pick") : post.coverLabel;
+  const topMeta = isDefault ? post.readingTime : post.publishedAt;
+  const bottomMeta = isDefault ? post.publishedAt : post.readingTime;
+  const cardClassName = [
+    "card",
+    "post-card",
+    `post-card--${variant}`,
+    spotlight ? "post-card--spotlight" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <article className="card">
+    <article className={cardClassName}>
       <div className="card-top">
-        <span className="card-label">{post.coverLabel}</span>
-        <span className="meta-pill">{post.readingTime}</span>
+        <span className="card-label">{label}</span>
+        <span className="meta-pill">{topMeta}</span>
       </div>
       <Link className="card-link" href={`/blog/${post.slug}`}>
         <h3 className="card-title">{post.title}</h3>
         <p className="card-excerpt">{post.excerpt}</p>
+        {isDefault ? null : (
+          <span className="post-card-cta">
+            {variant === "archive" ? "Read note" : "Read article"}
+            <span aria-hidden="true" className="post-card-cta-arrow">
+              →
+            </span>
+          </span>
+        )}
       </Link>
       <div className="card-meta">
-        <div className="tag-row">
+        <div className="tag-row post-card-tags">
           {post.tags.map((tag) => (
             <TagChip key={tag} label={tag} />
           ))}
         </div>
-        <span className="meta-pill">{post.publishedAt}</span>
+        <span className="meta-pill">{bottomMeta}</span>
       </div>
     </article>
   );

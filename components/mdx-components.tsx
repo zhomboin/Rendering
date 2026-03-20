@@ -1,4 +1,6 @@
-﻿function headingId(value: string) {
+﻿import { Figure, Gallery } from "@/components/article-media";
+
+function headingId(value: string) {
   return value
     .toLowerCase()
     .replace(/[^\w\s-]/g, "")
@@ -11,6 +13,8 @@ function textFromChildren(children: React.ReactNode) {
 }
 
 export const mdxComponents = {
+  Figure,
+  Gallery,
   h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
     const text = textFromChildren(children);
     return (

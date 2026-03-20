@@ -29,50 +29,50 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="hero-grid">
+      <section className="hero-grid home-hero-grid">
         <HeroPanel />
-        <div className="metric-grid">
+        <div className="metric-grid home-stagger home-stagger--metrics">
           {siteMetrics.map((metric) => (
             <MetricPanel key={metric.label} detail={metric.detail} label={metric.label} value={metric.value} />
           ))}
         </div>
       </section>
 
-      <section className="section">
+      <section className="section home-section home-section--featured">
         <SectionHeading
           kicker="Featured Stories"
           title="先用黏土卡片把你吸引住，再把阅读体验稳稳接住"
           copy="首页不再假装自己是冰冷的控制台，而是更像一个会发光、会邀请你继续读下去的个人博客客厅。"
         />
-        <div className="post-list">
+        <div className="post-list home-stagger home-stagger--cards">
           {featuredPosts.map((post) => (
             <PostCard key={post.slug} post={post} />
           ))}
         </div>
       </section>
 
-      <section className="content-grid section">
+      <section className="content-grid section home-section home-section--secondary">
         <div>
           <SectionHeading
             kicker="Latest Notes"
             title="最近写下来的灵感、方法和长一点的思考"
             copy="保留个人博客该有的轻盈感，卡片鲜活一点，信息密度克制一点，标题与摘要更容易一眼扫懂。"
           />
-          <div className="post-list">
+          <div className="post-list home-stagger home-stagger--cards">
             {recentPosts.map((post) => (
               <PostCard key={post.slug} post={post} />
             ))}
           </div>
         </div>
-        <div>
+        <div className="home-side-stack">
           <SearchBar />
-          <div className="section-band section">
+          <div className="section-band section home-tag-band">
             <SectionHeading
               kicker="Tag Candy Jar"
               title="标签像一把彩色糖豆，也是阅读入口"
               copy="标签不是后台附属品，而是读者理解你在写什么、又能从哪里继续读下去的第一组线索。"
             />
-            <div className="tag-grid">
+            <div className="tag-grid home-stagger home-stagger--tags">
               {tags.map((tag) => (
                 <article className="panel tag-card" id={tag.slug} key={tag.slug}>
                   <div className="meta-label">Topic</div>

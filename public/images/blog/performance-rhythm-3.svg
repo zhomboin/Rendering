@@ -1,0 +1,12 @@
+﻿<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" rx="56" fill="#DDF6FF"/>
+  <rect x="118" y="142" width="964" height="616" rx="42" fill="#FFFFFF" fill-opacity="0.62" stroke="#5ECCFF" stroke-width="8"/>
+  <circle cx="924" cy="258" r="110" fill="#5ECCFF" fill-opacity="0.74"/>
+  <rect x="204" y="226" width="448" height="82" rx="30" fill="#3B234D" fill-opacity="0.9"/>
+  <rect x="204" y="356" width="628" height="30" rx="15" fill="#D9C9FF"/>
+  <rect x="204" y="412" width="570" height="30" rx="15" fill="#D9C9FF"/>
+  <rect x="204" y="500" width="794" height="126" rx="34" fill="#FFF4E8"/>
+  <rect x="780" y="226" width="182" height="60" rx="22" fill="#FFD15A"/>
+  <text x="204" y="280" fill="#FFF7FF" font-size="52" font-family="Trebuchet MS, Segoe UI, sans-serif" font-weight="700">Response</text>
+  <text x="204" y="580" fill="#3B234D" font-size="28" font-family="Trebuchet MS, Segoe UI, sans-serif">Tiny status cues and measured spacing make performance feel visible, not mysterious.</text>
+</svg>
