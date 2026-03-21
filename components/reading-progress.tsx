@@ -1,10 +1,13 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
+import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n";
 import { calculateReadingProgress } from "@/lib/ui-state";
 
-export function ReadingProgress({ targetId }: { targetId: string }) {
+export function ReadingProgress({ targetId, locale = DEFAULT_LOCALE }: { targetId: string; locale?: string }) {
   const [progress, setProgress] = useState(0);
+  const normalizedLocale = normalizeLocale(locale);
+  const label = normalizedLocale === "zh" ? "阅读进度" : "Reading Progress";
 
   useEffect(() => {
     const target = document.getElementById(targetId);
@@ -58,7 +61,7 @@ export function ReadingProgress({ targetId }: { targetId: string }) {
       </div>
       <div aria-live="polite" className="reading-progress-pill">
         <div>
-          <div className="reading-progress-copy">阅读进度</div>
+          <div className="reading-progress-copy">{label}</div>
           <div className="reading-progress-value">{progress}%</div>
         </div>
         <div aria-hidden="true" className="reading-progress-mini-track">

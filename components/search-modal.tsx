@@ -1,6 +1,13 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  DEFAULT_LOCALE,
+  getMessages,
+  getSearchResultKey,
+  localizeSearchResultUrl,
+  normalizeLocale
+} from "@/lib/i18n";
 import { SEARCH_OPEN_EVENT } from "@/lib/ui-state";
 
 type SearchResult = {
@@ -17,7 +24,28 @@ type SearchResult = {
   }>;
 };
 
-export function SearchModal() {
+function dedupeAndLocalizeResults(results: SearchResult[], locale: string) {
+  const seen = new Set<string>();
+
+  return results.reduce<SearchResult[]>((accumulator, result) => {
+    const key = getSearchResultKey(result.url);
+
+    if (seen.has(key)) {
+      return accumulator;
+    }
+
+    seen.add(key);
+    accumulator.push({
+      ...result,
+      url: localizeSearchResultUrl(result.url, locale)
+    });
+    return accumulator;
+  }, []);
+}
+
+export function SearchModal({ locale = DEFAULT_LOCALE }: { locale?: string }) {
+  const normalizedLocale = normalizeLocale(locale);
+  const messages = getMessages(normalizedLocale);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -108,13 +136,13 @@ export function SearchModal() {
       const pagefind = await getPagefind();
       const search = await pagefind.search(query, { excerptLength: 18 });
       const loaded = await Promise.all(search.results.slice(0, 8).map((result: any) => result.data()));
-      setResults(loaded);
+      setResults(dedupeAndLocalizeResults(loaded, normalizedLocale));
       setActiveIndex(0);
       setLoading(false);
     }, 160);
 
     return () => window.clearTimeout(id);
-  }, [open, query]);
+  }, [normalizedLocale, open, query]);
 
   function openSearch() {
     lastFocusedRef.current = document.activeElement as HTMLElement | null;
@@ -190,35 +218,35 @@ export function SearchModal() {
       >
         <div className="search-modal-header">
           <div>
-            <div className="section-kicker">Global Search</div>
-            <h2 className="search-modal-title">Search the playful archive</h2>
+            <div className="section-kicker">{messages.search.globalKicker}</div>
+            <h2 className="search-modal-title">{messages.search.modalTitle}</h2>
           </div>
           <button className="search-close" onClick={closeSearch} type="button">
-            Esc
+            {messages.search.modalClose}
           </button>
         </div>
 
         <input
-          aria-label="Search the archive"
+          aria-label={messages.search.inputLabel}
           autoComplete="off"
           className="search-input search-modal-input"
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search by topic, mood, or phrase"
+          placeholder={messages.search.inputPlaceholder}
           ref={inputRef}
           value={query}
         />
 
         <div className="search-shortcuts-row">
-          <span className="meta-pill">/ focus</span>
+          <span className="meta-pill">{messages.search.shortcuts.focus}</span>
           <span className="meta-pill">Ctrl/Cmd + K</span>
-          <span className="meta-pill">↑ ↓ move</span>
-          <span className="meta-pill">Enter open</span>
+          <span className="meta-pill">{messages.search.shortcuts.move}</span>
+          <span className="meta-pill">{messages.search.shortcuts.open}</span>
         </div>
 
         <div className="search-results" role="listbox">
-          {!query ? <p className="empty-copy">输入关键词，看看哪篇笔记会先跳出来。</p> : null}
-          {loading ? <p className="empty-copy">正在翻找 Pagefind 索引...</p> : null}
-          {!loading && query && !hasResults ? <p className="empty-copy">这次没有找到匹配的文章，换个词试试。</p> : null}
+          {!query ? <p className="empty-copy">{messages.search.emptyPrompt}</p> : null}
+          {loading ? <p className="empty-copy">{messages.search.loading}</p> : null}
+          {!loading && query && !hasResults ? <p className="empty-copy">{messages.search.noResults}</p> : null}
           {!loading && hasResults
             ? results.map((result, index) => {
                 const title = result.meta?.title || result.sub_results?.[0]?.title || result.url;

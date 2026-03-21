@@ -1,36 +1,40 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleMeta } from "@/components/article-meta";
-import { mdxComponents } from "@/components/mdx-components";
+import { getMdxComponents } from "@/components/mdx-components";
 import { PrevNextNav } from "@/components/prev-next-nav";
 import { ReadingProgress } from "@/components/reading-progress";
 import { TocPanel } from "@/components/toc-panel";
-import { getAdjacentPosts, getAllPostSlugs, getPostBySlug } from "@/lib/content";
+import { getAdjacentPosts, getPostBySlug } from "@/lib/content";
+import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
 import { buildArticleJsonLd } from "@/lib/seo";
 
-export function generateStaticParams() {
-  return getAllPostSlugs().map((slug) => ({ slug }));
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function getBlogDetailPageMetadata(locale = DEFAULT_LOCALE, slug: string): Promise<Metadata> {
+  const normalizedLocale = normalizeLocale(locale);
+  const messages = getMessages(normalizedLocale);
   const post = await getPostBySlug(slug);
 
   if (!post) {
     return {
-      title: "Article Not Found"
+      title: normalizedLocale === "zh" ? "未找到文章" : "Article Not Found"
     };
   }
+
+  const canonicalPath = getLocalizedPath(`/blog/${post.slug}`, normalizedLocale);
 
   return {
     title: post.metadata.title,
     description: post.metadata.description,
-    alternates: { canonical: `/blog/${post.slug}` },
+    alternates: {
+      canonical: canonicalPath,
+      languages: getLocalizedAlternates(`/blog/${post.slug}`)
+    },
     openGraph: {
       type: "article",
       title: post.metadata.title,
       description: post.metadata.description,
-      url: `/blog/${post.slug}`,
+      locale: messages.locale.ogLocale,
+      url: canonicalPath,
       publishedTime: post.metadata.publishedAt,
       tags: post.metadata.tags
     },
@@ -41,8 +45,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export async function BlogDetailPageContent({ locale = DEFAULT_LOCALE, slug }: { locale?: string; slug: string }) {
+  const normalizedLocale = normalizeLocale(locale);
+  const messages = getMessages(normalizedLocale);
   const post = await getPostBySlug(slug);
 
   if (!post) {
@@ -52,16 +57,17 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
   const adjacent = getAdjacentPosts(post.slug);
   const Content = post.Content;
   const articleId = `article-${post.slug}`;
-  const articleJsonLd = buildArticleJsonLd({ ...post.metadata, slug: post.slug });
+  const articleJsonLd = buildArticleJsonLd({ ...post.metadata, slug: post.slug }, normalizedLocale);
+  const mdxComponents = getMdxComponents(normalizedLocale);
 
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} type="application/ld+json" />
-      <ReadingProgress targetId={articleId} />
+      <ReadingProgress locale={normalizedLocale} targetId={articleId} />
 
       <section className="section-band article-header-band">
         <div className="article-headline-row">
-          <div className="section-kicker">Story Capsule</div>
+          <div className="section-kicker">{messages.article.storyCapsule}</div>
           <span className="meta-pill">{post.metadata.coverLabel}</span>
         </div>
         <h1 className="article-title" data-pagefind-meta="title">
@@ -71,15 +77,15 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         <p data-pagefind-meta="tags" hidden>
           {post.metadata.tags.join(", ")}
         </p>
-        <ArticleMeta publishedAt={post.metadata.publishedAt} readingTime={post.metadata.readingTime} tags={post.metadata.tags} />
+        <ArticleMeta locale={normalizedLocale} publishedAt={post.metadata.publishedAt} readingTime={post.metadata.readingTime} tags={post.metadata.tags} />
       </section>
 
       <section className="article-layout section">
         <article className="article-shell article-body mdx-body" id={articleId}>
           <Content components={mdxComponents} />
-          <PrevNextNav next={adjacent.next} previous={adjacent.previous} />
+          <PrevNextNav locale={normalizedLocale} next={adjacent.next} previous={adjacent.previous} />
         </article>
-        <TocPanel sections={post.headings} />
+        <TocPanel locale={normalizedLocale} sections={post.headings} />
       </section>
     </>
   );

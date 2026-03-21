@@ -1,34 +1,38 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
+import { DEFAULT_LOCALE, getMessages, normalizeLocale } from "@/lib/i18n";
+import { getLocalizedRoute } from "@/lib/site";
 import { SEARCH_OPEN_EVENT } from "@/lib/ui-state";
 
-export function SearchBar() {
+export function SearchBar({ locale = DEFAULT_LOCALE }: { locale?: string }) {
+  const normalizedLocale = normalizeLocale(locale);
+  const messages = getMessages(normalizedLocale);
+  const search = messages.search;
+
   return (
     <div className="search-panel">
-      <div className="section-kicker">Search Playground</div>
-      <h2 className="section-title">想找哪篇文章，点一下就开搜</h2>
-      <p className="search-copy">
-        搜索入口保持轻松一点，但真正的检索仍然接到 Pagefind。首页负责邀请你探索，结果页负责帮你快速抵达。
-      </p>
+      <div className="section-kicker">{search.sectionKicker}</div>
+      <h2 className="section-title">{search.title}</h2>
+      <p className="search-copy">{search.copy}</p>
       <div className="section" style={{ marginTop: 18 }}>
         <button
-          aria-label="Search articles"
+          aria-label={search.inputLabel}
           className="search-input search-input-button"
           onClick={() => window.dispatchEvent(new Event(SEARCH_OPEN_EVENT))}
           type="button"
         >
-          试试搜索 “motion”、“reading” 或 “frontend”
+          {search.placeholderButton}
         </button>
       </div>
       <div className="inline-list section" style={{ marginTop: 16 }}>
-        <span className="meta-pill">Pagefind</span>
-        <span className="meta-pill">MDX Archive</span>
+        <span className="meta-pill">{search.pills.pagefind}</span>
+        <span className="meta-pill">{search.pills.archive}</span>
         <span className="meta-pill">Ctrl/Cmd + K</span>
       </div>
       <div className="hero-actions" style={{ marginTop: 18 }}>
-        <Link className="button-link button-link--secondary" href="/blog">
-          Open Blog Index
+        <Link className="button-link button-link--secondary" href={getLocalizedRoute(normalizedLocale, "/blog")}>
+          {search.openBlogIndex}
         </Link>
       </div>
     </div>

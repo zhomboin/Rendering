@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
+import { DEFAULT_LOCALE, getMessages, normalizeLocale } from "@/lib/i18n";
 import {
   DEFAULT_THEME,
   THEME_STORAGE_KEY,
   getPreferredTheme,
-  getThemeToggleLabel,
   toggleTheme
 } from "@/lib/ui-state";
 
@@ -14,8 +14,10 @@ function applyTheme(theme: string) {
   document.documentElement.style.colorScheme = theme;
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({ locale = DEFAULT_LOCALE }: { locale?: string }) {
   const [theme, setTheme] = useState(DEFAULT_THEME);
+  const normalizedLocale = normalizeLocale(locale);
+  const messages = getMessages(normalizedLocale);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
@@ -33,11 +35,14 @@ export function ThemeToggle() {
     });
   }
 
+  const themeLabel = theme === "dark" ? messages.theme.dark : messages.theme.light;
+  const ariaLabel = theme === "dark" ? messages.theme.toggleToLight : messages.theme.toggleToDark;
+
   return (
-    <button aria-label={getThemeToggleLabel(theme)} className="theme-toggle" onClick={handleToggle} type="button">
+    <button aria-label={ariaLabel} className="theme-toggle" onClick={handleToggle} type="button">
       <span className="theme-toggle-copy">
-        <span className="theme-toggle-kicker">Theme</span>
-        <span className="theme-toggle-value">{theme === "dark" ? "Dark" : "Light"}</span>
+        <span className="theme-toggle-kicker">{messages.theme.kicker}</span>
+        <span className="theme-toggle-value">{themeLabel}</span>
       </span>
       <span aria-hidden="true" className={`theme-toggle-orb theme-toggle-orb--${theme}`}>
         <span className="theme-toggle-spark" />

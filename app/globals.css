@@ -245,6 +245,7 @@ main {
 .nav-link,
 .search-trigger,
 .theme-toggle,
+.language-toggle,
 .tag-chip,
 .button-link,
 .search-close,
@@ -261,6 +262,7 @@ main {
 .nav-link,
 .search-trigger,
 .theme-toggle,
+.language-toggle,
 .tag-chip,
 .button-link,
 .search-close {
@@ -301,7 +303,8 @@ main {
   font-weight: 900;
 }
 
-.theme-toggle {
+.theme-toggle,
+.language-toggle {
   display: inline-flex;
   align-items: center;
   gap: 14px;
@@ -309,6 +312,33 @@ main {
   border-radius: 999px;
   background: linear-gradient(180deg, var(--surface-strong), var(--surface));
   cursor: pointer;
+}
+
+.language-toggle {
+  min-width: 130px;
+  justify-content: space-between;
+}
+
+.language-toggle-value {
+  font-weight: 900;
+  color: var(--text-strong);
+}
+
+.language-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+  box-shadow:
+    inset -4px -4px 10px rgba(255, 255, 255, 0.32),
+    inset 3px 3px 6px rgba(0, 0, 0, 0.12);
+  font-size: 0.86rem;
+  font-weight: 900;
+  color: var(--text-strong);
 }
 
 .theme-toggle-copy {
@@ -1052,6 +1082,8 @@ main {
 .search-trigger:focus-visible,
 .theme-toggle:hover,
 .theme-toggle:focus-visible,
+.language-toggle:hover,
+.language-toggle:focus-visible,
 .tag-chip:hover,
 .tag-chip:focus-visible,
 .button-link:hover,
@@ -1881,7 +1913,8 @@ main {
     justify-content: space-between;
   }
 
-  .theme-toggle {
+  .theme-toggle,
+  .language-toggle {
     flex: 1 1 220px;
     justify-content: space-between;
   }
@@ -1973,7 +2006,8 @@ main {
   }
 
   .search-trigger,
-  .theme-toggle {
+  .theme-toggle,
+  .language-toggle {
     width: 100%;
     justify-content: space-between;
   }

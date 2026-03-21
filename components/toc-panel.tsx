@@ -1,12 +1,19 @@
-﻿export function TocPanel({
-  sections
+import { DEFAULT_LOCALE, getMessages, normalizeLocale } from "@/lib/i18n";
+
+export function TocPanel({
+  sections,
+  locale = DEFAULT_LOCALE
 }: {
   sections: Array<{ id: string; heading: string }>;
+  locale?: string;
 }) {
+  const normalizedLocale = normalizeLocale(locale);
+  const messages = getMessages(normalizedLocale);
+
   return (
     <aside className="panel toc-panel">
-      <div className="section-kicker">Story Map</div>
-      <h2 className="toc-title">On this page</h2>
+      <div className="section-kicker">{messages.article.tocKicker}</div>
+      <h2 className="toc-title">{messages.article.tocTitle}</h2>
       {sections.length ? (
         <ul className="toc-list">
           {sections.map((section) => (
@@ -18,7 +25,7 @@
           ))}
         </ul>
       ) : (
-        <p className="empty-copy">This article unfolds in one continuous section.</p>
+        <p className="empty-copy">{messages.article.tocEmpty}</p>
       )}
     </aside>
   );
