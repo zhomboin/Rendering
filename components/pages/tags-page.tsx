@@ -5,6 +5,7 @@ import { buildTagShowcase } from "@/lib/archive-layout";
 import { getPostsByTag, getTagSummaries } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
 import { formatArticleCount, getBlogPostPath, getTagArchivePath } from "@/lib/site";
+import { getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 
 function mapTagShowcase(locale: string) {
   const messages = getMessages(locale);
@@ -19,6 +20,8 @@ export function getTagsPageMetadata(locale = DEFAULT_LOCALE): Metadata {
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
   const canonicalPath = getLocalizedPath("/tags", normalizedLocale);
+  const socialImage = getSiteSocialImageUrl(normalizedLocale);
+  const socialImageSize = getSocialImageSize();
 
   return {
     title: messages.tags.metadataTitle,
@@ -28,14 +31,24 @@ export function getTagsPageMetadata(locale = DEFAULT_LOCALE): Metadata {
       languages: getLocalizedAlternates("/tags")
     },
     openGraph: {
+      type: "website",
       title: `${messages.site.name} ${messages.tags.metadataTitle}`,
       description: messages.tags.metadataDescription,
       locale: messages.locale.ogLocale,
-      url: canonicalPath
+      url: canonicalPath,
+      images: [
+        {
+          url: socialImage,
+          ...socialImageSize,
+          alt: `${messages.site.name} preview`
+        }
+      ]
     },
     twitter: {
+      card: "summary_large_image",
       title: `${messages.site.name} ${messages.tags.metadataTitle}`,
-      description: messages.tags.metadataDescription
+      description: messages.tags.metadataDescription,
+      images: [socialImage]
     }
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n";
 import { createGalleryModel, stepGalleryIndex } from "@/lib/article-media";
 
@@ -52,6 +52,8 @@ function MediaLightbox({
   const item = activeIndex === null ? null : items[activeIndex] ?? null;
   const hasNavigation = Boolean(item && items.length > 1 && onSelect);
   const mediaCopy = getMediaCopy(locale);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!item) {
@@ -59,10 +61,16 @@ function MediaLightbox({
     }
 
     const previousOverflow = document.body.style.overflow;
+    lastFocusedRef.current = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
+
+    window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus();
+    });
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.preventDefault();
         onClose();
         return;
       }
@@ -97,6 +105,7 @@ function MediaLightbox({
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
+      lastFocusedRef.current?.focus();
     };
   }, [activeIndex, item, items.length, onClose, onSelect]);
 
@@ -120,10 +129,16 @@ function MediaLightbox({
 
   return (
     <div className="article-lightbox" onClick={onClose} role="presentation">
-      <div aria-modal="true" className="article-lightbox-dialog" onClick={(event) => event.stopPropagation()} role="dialog">
+      <div
+        aria-label={item.alt || mediaCopy.imagePreview}
+        aria-modal="true"
+        className="article-lightbox-dialog"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
         <div className="article-lightbox-toolbar">
           <div className="article-lightbox-counter">{hasNavigation ? `${resolvedIndex + 1} / ${items.length}` : mediaCopy.imagePreview}</div>
-          <button aria-label={mediaCopy.closePreview} className="article-lightbox-close" onClick={onClose} type="button">
+          <button aria-label={mediaCopy.closePreview} className="article-lightbox-close" onClick={onClose} ref={closeButtonRef} type="button">
             {mediaCopy.close}
           </button>
         </div>
@@ -135,7 +150,7 @@ function MediaLightbox({
               onClick={() => navigate(-1)}
               type="button"
             >
-              <span aria-hidden="true">←</span>
+              <span aria-hidden="true">&larr;</span>
               <span className="article-lightbox-nav-copy">{mediaCopy.previous}</span>
             </button>
           ) : null}
@@ -148,7 +163,7 @@ function MediaLightbox({
               type="button"
             >
               <span className="article-lightbox-nav-copy">{mediaCopy.next}</span>
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true">&rarr;</span>
             </button>
           ) : null}
         </div>

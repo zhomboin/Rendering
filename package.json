@@ -9,7 +9,11 @@
     "build:app": "next build",
     "build:search": "node scripts/build-search-index.mjs",
     "start": "next start",
-    "test": "node lib/content.test.js && node lib/ui-state.test.js && node lib/article-media.test.js && node lib/archive-layout.test.js && node lib/tag-discovery.test.js && node lib/i18n.test.js && node lib/seo.test.js"
+    "lint": "node scripts/verify-content.mjs",
+    "typecheck": "node scripts/typecheck.mjs",
+    "check": "npm.cmd run lint && npm.cmd test && npm.cmd run typecheck && npm.cmd run build",
+    "create-post": "node scripts/create-post.mjs",
+    "test": "node lib/content.test.js && node lib/post-template.test.js && node lib/feed.test.js && node lib/ui-state.test.js && node lib/article-media.test.js && node lib/archive-layout.test.js && node lib/tag-discovery.test.js && node lib/i18n.test.js && node lib/seo.test.js"
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",

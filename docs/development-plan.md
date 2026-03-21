@@ -1,121 +1,84 @@
 # Rendering Development Plan
 
-Date: 2026-03-19
+Date: 2026-03-21
 Project: Rendering
 Document Status: Active
 Document Role: Single implementation plan for the current personal-blog phase
 
 ## Plan Goal
 
-Deliver `Rendering` as a complete personal technical blog with a strong public reading experience, local MDX content workflow, static search, and extensible SEO foundations, while keeping the codebase ready for future CMS expansion without implementing CMS features now.
-
-## Current Scope
-
-Included:
-
-- public routes and reader-facing UI
-- local content architecture
-- visual system and interaction quality
-- search and discovery
-- SEO foundations
-- quality and deploy readiness
-
-Excluded:
-
-- login and authentication
-- admin panels
-- database-backed content editing
-- multi-author publishing
-- backend media management
+Deliver `Rendering` as a polished personal technical blog with a stable release baseline, strong reading experience, repeatable local MDX workflow, lightweight distribution features, and room for future CMS expansion without implementing CMS features now.
 
 ## Current Status
 
 The repository already contains:
 
-- public pages
-- MDX content repository
+- public homepage, archive, article, tags, and about routes
+- Chinese-first routing and English mirrored site UI routes
+- local MDX content repository
+- tag archive and tag filtering
 - Pagefind search integration
-- baseline metadata
-- playful claymorphism-inspired visual system
-- article media modules with figure, caption, gallery, and lightbox support
+- sitemap, robots, and JSON-LD
+- playful claymorphism visual system
+- article media modules, reading progress, and richer article UX
 
-## Workstreams
+## Current Workstreams
 
-### 1. Product Alignment And Documentation
+### 1. Publishing Baseline Closure
 
-Keep `docs/PRD.md`, `docs/development-plan.md`, the Chinese companion docs, `README.md`, `README.en.md`, and `AGENT.md` aligned with the actual product and current repo stack.
+Tighten the current release baseline by:
 
-### 2. Public Blog Experience
+- syncing docs with repo reality
+- adding explicit local verification commands
+- adding CI for core checks
+- improving missing-page handling
+- tightening accessibility on the most important interaction surfaces
 
-Continue polishing:
+### 2. Author Workflow And Content Discipline
 
-- homepage storytelling and hierarchy
-- archive scanability
-- article reading comfort
-- tag-driven browsing
-- responsive behavior
-- image-and-text article layouts
+Strengthen the content layer by:
 
-### 3. Content System And Editorial Workflow
+- clarifying frontmatter expectations
+- adding authoring templates and draft helpers
+- validating content more reliably
+- keeping repository helpers as the only public-content source of truth
 
-Maintain:
+### 3. Distribution Foundations
 
-- local MDX as the canonical author workflow
-- strict frontmatter contracts
-- stable tag aggregation
-- repository helpers as the only source of truth for public content access
-- tests whenever content-layer behavior changes
+Extend outward-facing publishing support with:
 
-### 4. Search And SEO
+- feed generation
+- manifest support
+- stronger share and metadata foundations where useful
 
-Keep search reliable and complete the current-phase SEO baseline with:
+### 4. Curated Content Migration
 
-- route metadata
-- article metadata
-- `sitemap.xml`
-- `robots.txt`
-- JSON-LD
+Grow the archive by migrating a first curated batch of original CSDN articles into native Rendering content, with rewriting and restructuring rather than mechanical copying.
 
-### 5. Quality, Performance, And Deployment Readiness
+### 5. Future CMS Preparation
 
-Maintain:
+Keep the architecture ready for a later CMS phase by:
 
-- passing helper and content tests
-- successful production build and search indexing
-- good mobile and desktop readability
-- visible focus states and reduced-motion support
+- maintaining clean repository boundaries
+- avoiding direct route/file parsing coupling
+- keeping current UI components reusable
 
-### 6. Future CMS Expansion Preparation
+Do not add login, admin, or database complexity just in case.
 
-Allowed preparation:
+## Recommended Execution Order
 
-- keep content access behind repository helpers
-- avoid coupling routes directly to file parsing details
-- leave room for future content-source replacement
-- keep UI components modular enough to survive a future admin phase
-
-Not allowed now:
-
-- building login flows just in case
-- adding database dependencies without a real current need
-- introducing admin routes that are not actively required
-- designing the public site around future dashboard needs
-
-## Recommended Priority Order
-
-1. keep PRD and plan alignment stable
-2. continue polishing the public reading and browsing experience
-3. strengthen content quality and authoring discipline
-4. extend SEO foundations where they deliver clear value
-5. tighten QA and deployment readiness
-6. only then define the first CMS expansion phase
+1. publishing baseline closure
+2. author workflow and migration template
+3. distribution additions
+4. curated CSDN article migration
+5. re-evaluate the need for a future CMS phase
 
 ## Completion Definition
 
-The current phase is complete when:
+The current phase is in a strong place when:
 
-- the public blog feels polished and coherent
-- the MDX workflow is stable and pleasant
-- search and metadata are dependable
-- the project is easy to maintain and deploy
-- no missing current-phase feature requires CMS infrastructure to be considered successful
+- verification and build workflows are reliable
+- product docs and implementation match
+- new posts are easier to create consistently
+- the archive has grown in both quality and technical depth
+- no current-phase requirement depends on CMS infrastructure

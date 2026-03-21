@@ -1,0 +1,203 @@
+---
+title: "用 Docker 搭一个 Redis Sentinel 高可用集群"
+description: "从网络、主从、Sentinel 配置到故障切换验证，完整搭建一个 1 主 2 从 3 Sentinel 的 Redis 高可用环境。"
+publishedAt: "2026-03-19"
+tags:
+  - redis
+  - servers
+  - docker
+draft: false
+---
+
+## Why this matters
+
+单机 Redis 跑起来很快，但一旦它承担真正的缓存、会话或轻量队列职责，单点故障就会立刻暴露出来。主节点一挂，客户端找不到新的主节点，服务就会从“快”直接变成“不可用”。
+
+Redis Sentinel 的价值就在这里。它不是把 Redis 变成分布式数据库，而是在主从基础上补上一层监控、故障判定和自动切换，让系统在主节点失效时还能尽快恢复可写状态。
+
+## What is happening
+
+这套方案的最小闭环可以概括成：
+
+- 1 个主节点负责写入。
+- 2 个副本节点负责复制数据。
+- 3 个 Sentinel 节点负责监控、投票和触发故障转移。
+
+Sentinel 自己不存业务数据，它关注的是三件事：
+
+1. 主节点是不是还活着。
+2. 当前副本里谁适合接任主节点。
+3. 客户端和其他副本应该切到哪里。
+
+本文用 Docker 把这套拓扑在一台机器上跑起来，重点不是追求最少命令，而是把目录、网络、配置和验证路径整理清楚。
+
+## Walkthrough
+
+### 先把目录和网络规划好
+
+先准备一个独立目录，避免主节点、副本和 Sentinel 的数据与配置散在别处：
+
+```bash
+mkdir -p /home/docker/redis-sentinel
+mkdir -p /home/docker/redis-sentinel/master-data
+mkdir -p /home/docker/redis-sentinel/slave1-data
+mkdir -p /home/docker/redis-sentinel/slave2-data
+mkdir -p /home/docker/redis-sentinel/sentinel1-data
+mkdir -p /home/docker/redis-sentinel/sentinel2-data
+mkdir -p /home/docker/redis-sentinel/sentinel3-data
+```
+
+然后单独创建一个 bridge 网络，让所有容器在同一网段通信：
+
+```bash
+docker network create \
+  --driver bridge \
+  --subnet 172.16.0.0/24 \
+  --gateway 172.16.0.1 \
+  redis-bridge
+```
+
+这么做的好处是，主从和 Sentinel 之间的地址关系稳定，排查也更直接。
+
+### 主节点配置只保留关键项就够了
+
+主节点配置里最值得先确认的是端口、密码和持久化：
+
+```conf
+port 6379
+bind 0.0.0.0
+requirepass 123456
+masterauth 123456
+appendonly yes
+```
+
+对应的启动命令可以写成：
+
+```bash
+docker run -d \
+  --name redis-master \
+  --network redis-bridge \
+  --ip 172.16.0.10 \
+  -p 6379:6379 \
+  -v /home/docker/redis-sentinel/redis-master.conf:/etc/redis/redis.conf \
+  -v /home/docker/redis-sentinel/master-data:/data \
+  redis:7.4.4 \
+  redis-server /etc/redis/redis.conf
+```
+
+如果这是线上环境，不建议继续使用示例密码，也要把暴露端口和安全组一起纳入考虑。
+
+### 副本节点的核心是 replicaof
+
+副本配置和主节点非常接近，差别主要在于它要明确复制哪个主节点：
+
+```conf
+port 6379
+bind 0.0.0.0
+requirepass 123456
+masterauth 123456
+appendonly yes
+replicaof redis-master 6379
+```
+
+两个副本分别跑起来之后，可以在主节点上确认复制状态：
+
+```bash
+docker exec redis-master redis-cli -a 123456 INFO replication
+```
+
+如果 `connected_slaves` 和每个 replica 的状态都正常，就说明主从链路已经打通。
+
+### Sentinel 只需要抓住四个参数
+
+Sentinel 配置看起来有不少项，但第一次搭建时最关键的是这几项：
+
+```conf
+port 26379
+daemonize no
+sentinel resolve-hostnames yes
+sentinel monitor mymaster redis-master 6379 2
+sentinel auth-pass mymaster 123456
+sentinel down-after-milliseconds mymaster 5000
+```
+
+这几行的含义分别是：
+
+- Sentinel 自己监听 `26379`。
+- 监控名叫 `mymaster` 的主节点。
+- 至少要有 2 个 Sentinel 同意，才进入故障转移流程。
+- 访问主节点时使用同样的密码。
+- 5 秒无响应就判定为下线候选。
+
+三个 Sentinel 都启动后，可以用下面的命令确认监控视角：
+
+```bash
+docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL masters
+```
+
+### 用 docker compose 统一起来会更省心
+
+如果你不想手工维护 6 个容器命令，最适合的收口方式是改用 `docker compose`。结构上至少应该包含：
+
+- `redis-master`
+- `redis-slave1`
+- `redis-slave2`
+- `redis-sentinel1`
+- `redis-sentinel2`
+- `redis-sentinel3`
+- 外部网络 `redis-bridge`
+
+这里不一定要追求把所有参数都塞进一份超长配置里，真正重要的是保持以下三点一致：
+
+1. 所有服务都挂进同一个网络。
+2. 主从和 Sentinel 的配置文件路径与数据目录映射清晰。
+3. 主节点地址、认证方式和 Sentinel 监控名在所有配置里保持一致。
+
+### 故障切换验证一定要做
+
+高可用搭建的真正终点不是“容器都启动了”，而是主节点挂掉以后是否真的能切换。
+
+一个最小验证流程可以这样走：
+
+```bash
+# 先确认当前主节点
+docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+
+# 停掉主节点
+docker stop redis-master
+
+# 等待数秒后再看新的主节点
+docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+```
+
+如果返回的地址已经切到某个副本节点，再登录那个节点做一次写入测试，就能确认它是否已经真正晋升为新的主节点。
+
+## Practical checks
+
+这套环境搭好后，我建议至少固定检查这几件事：
+
+1. 主从复制是否建立。
+
+```bash
+docker exec redis-master redis-cli -a 123456 INFO replication
+```
+
+2. Sentinel 是否都识别到了主节点和副本。
+
+```bash
+docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL masters
+```
+
+3. 故障切换后，客户端是不是能重新找到可写主节点。
+4. 原主节点恢复后，是重新以副本身份加入，还是因为旧配置导致拓扑混乱。
+
+还有两个实际经验值得提前记住：
+
+- 示例里使用的固定 IP、明文密码更适合演示，不适合直接原样进生产。
+- 目录命名、容器命名和配置里的角色名称一定要统一，否则排查复制和切换状态会非常痛苦。
+
+## Closing notes
+
+Redis Sentinel 的难点从来不在某一条命令，而在于你能不能把“主从复制正常”“Sentinel 监控正常”“切换后客户端还能工作”三件事连成一条闭环。
+
+如果你是第一次搭，建议先用本文这种一台机器上的 Docker 拓扑把流程跑通。等你真正把切换过程和验证命令都走过一遍，再迁移到多机环境，心里会稳很多。

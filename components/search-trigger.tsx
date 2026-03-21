@@ -9,12 +9,16 @@ export function SearchTrigger({ locale = DEFAULT_LOCALE }: { locale?: string }) 
 
   return (
     <button
+      aria-controls="site-search-dialog"
+      aria-haspopup="dialog"
       className="search-trigger"
       onClick={() => window.dispatchEvent(new Event(SEARCH_OPEN_EVENT))}
       type="button"
     >
       <span>{messages.search.trigger}</span>
-      <span className="search-shortcut">/</span>
+      <span aria-hidden="true" className="search-shortcut">
+        /
+      </span>
     </button>
   );
 }

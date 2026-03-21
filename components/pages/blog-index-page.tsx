@@ -6,8 +6,9 @@ import { SectionHeading } from "@/components/section-heading";
 import { buildTagShowcase, splitArchivePosts } from "@/lib/archive-layout";
 import { getAllPosts, getPostsByTag, getTagSummaries } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
-import { buildTagFilterLinks, resolveTagFilter } from "@/lib/tag-discovery";
 import { formatArticleCount, getLocalizedRoute, getTagArchivePath } from "@/lib/site";
+import { getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
+import { buildTagFilterLinks, resolveTagFilter } from "@/lib/tag-discovery";
 
 type BlogIndexSearchParams = {
   tag?: string | string[];
@@ -44,6 +45,8 @@ export function getBlogIndexPageMetadata(locale = DEFAULT_LOCALE, searchParams: 
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
   const tags = getTagSummaries();
+  const socialImage = getSiteSocialImageUrl(normalizedLocale);
+  const socialImageSize = getSocialImageSize();
   const { activeTag } = resolveTagFilter(searchParams.tag, tags);
 
   if (!activeTag) {
@@ -56,14 +59,24 @@ export function getBlogIndexPageMetadata(locale = DEFAULT_LOCALE, searchParams: 
         languages: getLocalizedAlternates("/blog")
       },
       openGraph: {
+        type: "website",
         title: `${messages.site.name} ${messages.blogArchive.metadataTitle}`,
         description: messages.blogArchive.metadataDescription,
         locale: messages.locale.ogLocale,
-        url: canonicalPath
+        url: canonicalPath,
+        images: [
+          {
+            url: socialImage,
+            ...socialImageSize,
+            alt: `${messages.site.name} preview`
+          }
+        ]
       },
       twitter: {
+        card: "summary_large_image",
         title: `${messages.site.name} ${messages.blogArchive.metadataTitle}`,
-        description: messages.blogArchive.metadataDescription
+        description: messages.blogArchive.metadataDescription,
+        images: [socialImage]
       }
     };
   }
@@ -83,14 +96,24 @@ export function getBlogIndexPageMetadata(locale = DEFAULT_LOCALE, searchParams: 
       follow: true
     },
     openGraph: {
+      type: "website",
       title: `${activeTag.name} ${messages.common.openTagArchive}`,
       description,
       locale: messages.locale.ogLocale,
-      url: canonicalPath
+      url: canonicalPath,
+      images: [
+        {
+          url: socialImage,
+          ...socialImageSize,
+          alt: `${messages.site.name} preview`
+        }
+      ]
     },
     twitter: {
+      card: "summary_large_image",
       title: `${activeTag.name} ${messages.common.openTagArchive}`,
-      description
+      description,
+      images: [socialImage]
     }
   };
 }

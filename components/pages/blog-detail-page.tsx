@@ -7,7 +7,7 @@ import { ReadingProgress } from "@/components/reading-progress";
 import { TocPanel } from "@/components/toc-panel";
 import { getAdjacentPosts, getPostBySlug } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
-import { buildArticleJsonLd } from "@/lib/seo";
+import { buildArticleJsonLd, getArticleSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 
 export async function getBlogDetailPageMetadata(locale = DEFAULT_LOCALE, slug: string): Promise<Metadata> {
   const normalizedLocale = normalizeLocale(locale);
@@ -21,6 +21,13 @@ export async function getBlogDetailPageMetadata(locale = DEFAULT_LOCALE, slug: s
   }
 
   const canonicalPath = getLocalizedPath(`/blog/${post.slug}`, normalizedLocale);
+  const socialImage = getArticleSocialImageUrl(normalizedLocale, {
+    slug: post.slug,
+    title: post.metadata.title,
+    publishedAt: post.metadata.publishedAt,
+    readingTime: post.metadata.readingTime
+  });
+  const socialImageSize = getSocialImageSize();
 
   return {
     title: post.metadata.title,
@@ -36,11 +43,20 @@ export async function getBlogDetailPageMetadata(locale = DEFAULT_LOCALE, slug: s
       locale: messages.locale.ogLocale,
       url: canonicalPath,
       publishedTime: post.metadata.publishedAt,
-      tags: post.metadata.tags
+      tags: post.metadata.tags,
+      images: [
+        {
+          url: socialImage,
+          ...socialImageSize,
+          alt: `${post.metadata.title} preview`
+        }
+      ]
     },
     twitter: {
+      card: "summary_large_image",
       title: post.metadata.title,
-      description: post.metadata.description
+      description: post.metadata.description,
+      images: [socialImage]
     }
   };
 }

@@ -1,0 +1,139 @@
+---
+title: "Ubuntu 上的 Fail2Ban：先挡住 SSH 暴力破解，再谈别的"
+description: "从安装、jail.local 配置到常用运维命令，整理一套适合 Ubuntu 服务器的 Fail2Ban 基线。"
+publishedAt: "2026-03-18"
+tags:
+  - linux
+  - servers
+  - security
+draft: false
+---
+
+## Why this matters
+
+只要服务器暴露在公网，SSH 暴力破解几乎迟早会出现。它未必每次都成功，但大量失败登录会持续消耗日志、带来噪声，也会在你真正需要排查安全事件时把视线拖乱。
+
+Fail2Ban 的价值就在于，它不需要你手工盯日志，也不要求先上复杂的安全平台。只要服务日志里出现符合规则的失败尝试，它就能自动封禁来源 IP，把很多最基础、最重复的攻击流量先挡在门外。
+
+## What is happening
+
+Fail2Ban 的工作流可以概括成四步：
+
+1. 监控指定日志文件。
+2. 用过滤规则匹配失败行为。
+3. 达到阈值后调用后端动作执行封禁。
+4. 到了设定时间再自动解封。
+
+对 Ubuntu 服务器来说，最常见的起点就是先守住 SSH。因为 SSH 往往是最先暴露在公网、也最常被反复尝试爆破的入口。
+
+## Walkthrough
+
+### 先把服务装起来并启动
+
+```bash
+sudo apt update
+sudo apt install fail2ban
+sudo systemctl start fail2ban
+sudo systemctl enable fail2ban
+```
+
+这一步完成后，服务本体已经在系统里了，但默认配置往往不适合直接长期使用，尤其不建议去直接改原始的 `jail.conf`。
+
+### 配置目录里最重要的是这三类文件
+
+Fail2Ban 主要工作在 `/etc/fail2ban` 目录下，理解下面三类文件基本就够用了：
+
+- `jail.conf` / `jail.local`：定义监控哪个服务、失败阈值、封禁时长等核心参数。
+- `filter.d/`：定义日志匹配规则，也就是“什么样的日志算攻击信号”。
+- `action.d/`：定义封禁动作，比如改防火墙规则。
+
+实践里更推荐复制一份 `jail.local` 来改，而不是直接动默认模板：
+
+```bash
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sudo vim /etc/fail2ban/jail.local
+```
+
+### 先把 sshd 这一段配置干净
+
+对于 Ubuntu 上最常见的 SSH 防护，一个够用的基础配置可以这样写：
+
+```ini
+[sshd]
+enable = true
+port = 22
+maxretry = 5
+findtime = 600
+bantime = 43200
+logpath = %(auth_log)s
+backend = %(sshd_backend)s
+```
+
+这几个参数里最重要的是：
+
+- `maxretry`：在窗口期内允许失败多少次。
+- `findtime`：统计失败次数的时间窗口。
+- `bantime`：触发后封禁多久。
+- `logpath`：要读哪份日志，Ubuntu 下通常就是 `auth.log`。
+
+如果你在生产环境里还有跳板机、办公出口或监控节点，别忘了后续把可信 IP 放进忽略名单，否则很容易把自己人也封进去。
+
+### 配好以后不要忘了重载和看状态
+
+修改配置后，至少做两步确认：
+
+```bash
+sudo systemctl reload fail2ban
+sudo fail2ban-client status sshd
+```
+
+前者是让新配置生效，后者是确认 `sshd` 这个 jail 已经真的启动，而不是配置写完就结束。
+
+同时也建议把日志位置记住：
+
+```text
+/var/log/fail2ban.log
+```
+
+当你怀疑规则没生效、封禁没触发或者意外误封时，这份日志通常是第一现场。
+
+### 日常运维最常用的不是安装命令，而是 client 命令
+
+把 Fail2Ban 长期留在服务器上之后，真正高频用到的往往是这些命令：
+
+```bash
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
+sudo fail2ban-client set sshd banip <ip-address>
+sudo fail2ban-client set sshd unbanip <ip-address>
+```
+
+前两条让你看整体状态和单个 jail 的状态，后两条则适合做临时封禁与手工解封。它们在排查异常来源 IP、误封办公网络时都非常实用。
+
+## Practical checks
+
+如果你想确认当前这套配置是不是已经达到了“能上线的最小安全基线”，建议按下面的顺序检查：
+
+1. 服务状态是否正常。
+
+```bash
+sudo systemctl status fail2ban
+```
+
+2. `sshd` jail 是否处于启用状态。
+
+```bash
+sudo fail2ban-client status sshd
+```
+
+3. 封禁阈值和封禁时间是否符合你的服务器风险等级。
+4. 是否已经把可信 IP、运维出口和自动化任务来源纳入白名单策略。
+5. 是否清楚日志文件在哪里，以及误封时怎么解封。
+
+如果你的服务器使用的是自定义 SSH 端口、防火墙后端或不同的认证日志路径，也要同步更新 jail 配置，不要默认照搬示例。
+
+## Closing notes
+
+Fail2Ban 不是完整的服务器安全方案，但它非常适合作为公网主机的第一层低成本防线。它做的事情不复杂，却能把大量最基础、最机械的爆破流量挡在外面。
+
+对个人博客、自托管服务或者小型业务机器来说，这种“先把最常见的风险压下去”的能力很有价值。先把 SSH 入口守好，再去补更细的账号策略、密钥管理和审计，整个安全基线才算真正开始成形。

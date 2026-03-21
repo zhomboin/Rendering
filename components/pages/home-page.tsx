@@ -7,11 +7,14 @@ import { SectionHeading } from "@/components/section-heading";
 import { getAllPosts, getFeaturedPosts, getRecentPosts, getTagSummaries } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
 import { getSiteMetrics } from "@/lib/site";
+import { getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 
 export function getHomePageMetadata(locale = DEFAULT_LOCALE): Metadata {
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
   const canonicalPath = getLocalizedPath("/", normalizedLocale);
+  const socialImage = getSiteSocialImageUrl(normalizedLocale);
+  const socialImageSize = getSocialImageSize();
 
   return {
     title: messages.home.metadataTitle,
@@ -21,14 +24,24 @@ export function getHomePageMetadata(locale = DEFAULT_LOCALE): Metadata {
       languages: getLocalizedAlternates("/")
     },
     openGraph: {
+      type: "website",
       title: messages.site.name,
       description: messages.home.metadataDescription,
       locale: messages.locale.ogLocale,
-      url: canonicalPath
+      url: canonicalPath,
+      images: [
+        {
+          url: socialImage,
+          ...socialImageSize,
+          alt: `${messages.site.name} preview`
+        }
+      ]
     },
     twitter: {
+      card: "summary_large_image",
       title: messages.site.name,
-      description: messages.home.metadataDescription
+      description: messages.home.metadataDescription,
+      images: [socialImage]
     }
   };
 }

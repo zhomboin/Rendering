@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
 import { getLocalizedRoute } from "@/lib/site";
+import { getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 
 export function getAboutPageMetadata(locale = DEFAULT_LOCALE): Metadata {
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
   const canonicalPath = getLocalizedPath("/about", normalizedLocale);
+  const socialImage = getSiteSocialImageUrl(normalizedLocale);
+  const socialImageSize = getSocialImageSize();
 
   return {
     title: messages.about.metadataTitle,
@@ -16,14 +19,24 @@ export function getAboutPageMetadata(locale = DEFAULT_LOCALE): Metadata {
       languages: getLocalizedAlternates("/about")
     },
     openGraph: {
+      type: "website",
       title: `${messages.about.metadataTitle} ${messages.site.name}`,
       description: messages.about.metadataDescription,
       locale: messages.locale.ogLocale,
-      url: canonicalPath
+      url: canonicalPath,
+      images: [
+        {
+          url: socialImage,
+          ...socialImageSize,
+          alt: `${messages.site.name} preview`
+        }
+      ]
     },
     twitter: {
+      card: "summary_large_image",
       title: `${messages.about.metadataTitle} ${messages.site.name}`,
-      description: messages.about.metadataDescription
+      description: messages.about.metadataDescription,
+      images: [socialImage]
     }
   };
 }

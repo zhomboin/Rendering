@@ -39,7 +39,7 @@ export function ThemeToggle({ locale = DEFAULT_LOCALE }: { locale?: string }) {
   const ariaLabel = theme === "dark" ? messages.theme.toggleToLight : messages.theme.toggleToDark;
 
   return (
-    <button aria-label={ariaLabel} className="theme-toggle" onClick={handleToggle} type="button">
+    <button aria-label={ariaLabel} aria-pressed={theme === "dark"} className="theme-toggle" onClick={handleToggle} type="button">
       <span className="theme-toggle-copy">
         <span className="theme-toggle-kicker">{messages.theme.kicker}</span>
         <span className="theme-toggle-value">{themeLabel}</span>

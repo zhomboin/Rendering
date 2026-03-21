@@ -1,4 +1,4 @@
-# AGENT.md — Rendering Current-Phase Project Guide
+# AGENT.md - Rendering Current-Phase Project Guide
 
 ## Project Definition
 
@@ -10,6 +10,7 @@ It is built as a public-facing Next.js App Router site focused on:
 - long-form reading comfort
 - playful editorial claymorphism-inspired visuals
 - static search and SEO foundations
+- Chinese-first routes with English mirrored UI routes
 - future-ready architecture without current CMS complexity
 
 ## Current Stack
@@ -26,6 +27,7 @@ It is built as a public-facing Next.js App Router site focused on:
 ### In Scope
 
 - public blog pages
+- localized public site UI
 - content repository helpers
 - article reading UX
 - tag discovery
@@ -47,39 +49,48 @@ It is built as a public-facing Next.js App Router site focused on:
 app/                  Public App Router pages and route metadata
 components/           Site, content, and reading-interaction components
 content/posts/        Local MDX articles
-lib/                  Content, archive, UI state, and SEO helpers
+lib/                  Content, archive, i18n, UI state, and SEO helpers
 public/               Static assets, previews, and generated search index
 docs/                 PRD, development plan, and design docs
+scripts/              Build and verification helpers
 ```
 
 ## Common Commands
 
 ```bash
 npm run dev
+npm run lint
 npm test
+npm run typecheck
 npm run build
+npm run check
 ```
 
 ## Architecture Notes
 
-- Published content should be accessed through helpers in `lib/content.js`
-- Route code should not duplicate file parsing logic
-- Draft filtering must stay centralized in the content layer
-- Prefer Server Components by default and use client components only where interaction is necessary
-- Keep article reading surfaces calmer than homepage and archive surfaces
-- Reuse the current radius, shadow, color, and motion language in `app/globals.css`
-- Respect `prefers-reduced-motion`
+- published content should be accessed through helpers in `lib/content.js`
+- route code should not duplicate file parsing logic
+- draft filtering must stay centralized in the content layer
+- prefer Server Components by default and use client components only where interaction is necessary
+- keep article reading surfaces calmer than homepage and archive surfaces
+- reuse the current radius, shadow, color, and motion language in `app/globals.css`
+- respect `prefers-reduced-motion`
 
-## Testing Expectations
+## Verification Notes
 
-- Any content-layer behavior change should be covered by a focused Node test in `lib/*.test.js`
-- Any new helper behavior should follow TDD: failing test first, then minimal implementation
-- Before claiming completion, run:
+The current-phase verification baseline is intentionally lightweight:
 
-```bash
-npm test
-npm run build
-```
+- `npm run lint` checks repository content integrity through the content layer
+- `npm test` runs focused Node-based helper tests
+- `npm run build` is the practical Next.js compile and type gate for this App Router repo
+- `npm run check` runs the current release baseline in one command
+
+## Next Current-Phase Priorities
+
+- publishing baseline closure
+- author workflow and migration templates
+- feed and manifest support
+- curated migration of original CSDN articles into native site content
 
 ## SEO Direction
 
@@ -89,5 +100,6 @@ Keep SEO static-friendly and App Router native:
 - frontmatter-driven article metadata
 - `sitemap.ts` and `robots.ts`
 - JSON-LD derived from existing content data
+- future feed/share improvements without backend dependencies
 
 Avoid introducing backend or CMS dependencies just to improve SEO.

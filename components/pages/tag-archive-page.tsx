@@ -6,7 +6,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { buildTagShowcase, splitArchivePosts } from "@/lib/archive-layout";
 import { getPostsByTag, getTagSummaries, getTagSummaryBySlug } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
-import { buildTagArchiveJsonLd } from "@/lib/seo";
+import { buildTagArchiveJsonLd, getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 import { formatArticleCount, getBlogPostPath, getLocalizedRoute, getTagArchivePath } from "@/lib/site";
 
 function createTagDescription(locale: string, tagName: string, count: number) {
@@ -41,6 +41,8 @@ export async function getTagArchivePageMetadata(locale = DEFAULT_LOCALE, slug: s
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
   const tag = getTagSummaryBySlug(slug);
+  const socialImage = getSiteSocialImageUrl(normalizedLocale);
+  const socialImageSize = getSocialImageSize();
 
   if (!tag) {
     return {
@@ -59,14 +61,24 @@ export async function getTagArchivePageMetadata(locale = DEFAULT_LOCALE, slug: s
       languages: getLocalizedAlternates(`/tags/${tag.slug}`)
     },
     openGraph: {
+      type: "website",
       title: `${tag.name} ${messages.tagArchive.metadataSuffix}`,
       description,
       locale: messages.locale.ogLocale,
-      url: canonicalPath
+      url: canonicalPath,
+      images: [
+        {
+          url: socialImage,
+          ...socialImageSize,
+          alt: `${messages.site.name} preview`
+        }
+      ]
     },
     twitter: {
+      card: "summary_large_image",
       title: `${tag.name} ${messages.tagArchive.metadataSuffix}`,
-      description
+      description,
+      images: [socialImage]
     }
   };
 }

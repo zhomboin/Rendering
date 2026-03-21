@@ -59,6 +59,7 @@ export function SearchModal({ locale = DEFAULT_LOCALE }: { locale?: string }) {
 
   const hasResults = results.length > 0;
   const activeResult = useMemo(() => results[activeIndex] ?? null, [activeIndex, results]);
+  const titleId = `site-search-title-${normalizedLocale}`;
 
   useEffect(() => {
     const openFromEvent = () => openSearch();
@@ -144,6 +145,10 @@ export function SearchModal({ locale = DEFAULT_LOCALE }: { locale?: string }) {
     return () => window.clearTimeout(id);
   }, [normalizedLocale, open, query]);
 
+  function getResultId(index: number) {
+    return `site-search-result-${index}`;
+  }
+
   function openSearch() {
     lastFocusedRef.current = document.activeElement as HTMLElement | null;
     setOpen(true);
@@ -210,8 +215,10 @@ export function SearchModal({ locale = DEFAULT_LOCALE }: { locale?: string }) {
   return (
     <div aria-hidden={!open} className="search-overlay" data-pagefind-ignore onClick={closeSearch}>
       <div
+        aria-labelledby={titleId}
         aria-modal="true"
         className="search-modal"
+        id="site-search-dialog"
         onClick={(event) => event.stopPropagation()}
         ref={panelRef}
         role="dialog"
@@ -219,7 +226,9 @@ export function SearchModal({ locale = DEFAULT_LOCALE }: { locale?: string }) {
         <div className="search-modal-header">
           <div>
             <div className="section-kicker">{messages.search.globalKicker}</div>
-            <h2 className="search-modal-title">{messages.search.modalTitle}</h2>
+            <h2 className="search-modal-title" id={titleId}>
+              {messages.search.modalTitle}
+            </h2>
           </div>
           <button className="search-close" onClick={closeSearch} type="button">
             {messages.search.modalClose}
@@ -243,7 +252,11 @@ export function SearchModal({ locale = DEFAULT_LOCALE }: { locale?: string }) {
           <span className="meta-pill">{messages.search.shortcuts.open}</span>
         </div>
 
-        <div className="search-results" role="listbox">
+        <div
+          aria-activedescendant={hasResults ? getResultId(activeIndex) : undefined}
+          className="search-results"
+          role="listbox"
+        >
           {!query ? <p className="empty-copy">{messages.search.emptyPrompt}</p> : null}
           {loading ? <p className="empty-copy">{messages.search.loading}</p> : null}
           {!loading && query && !hasResults ? <p className="empty-copy">{messages.search.noResults}</p> : null}
@@ -253,9 +266,12 @@ export function SearchModal({ locale = DEFAULT_LOCALE }: { locale?: string }) {
                 const tags = result.meta?.tags;
                 return (
                   <button
+                    aria-selected={index === activeIndex}
                     className={`search-result${index === activeIndex ? " is-active" : ""}`}
+                    id={getResultId(index)}
                     key={`${result.url}-${index}`}
                     onClick={() => window.location.assign(result.url)}
+                    role="option"
                     type="button"
                   >
                     <div className="search-result-header">

@@ -1,112 +1,115 @@
-# Rendering PRD
+# Rendering Product Requirements Document
 
-Date: 2026-03-19
+Date: 2026-03-21
 Project: Rendering
 Document Status: Active
-Document Role: Single source of truth for the current personal-blog phase
+Document Role: Single PRD for the current personal-blog phase
 
 ## Product Definition
 
 `Rendering` is currently a personal technical blog, not a CMS product.
 
-This phase focuses on a public-facing publishing site for long-form writing about frontend systems, rendering, interaction design, motion, performance, and engineering thinking. It should feel personal, editorial, expressive, and highly readable.
+It is a public-facing publishing site built around:
 
-Current priorities:
+- long-form technical writing
+- a playful claymorphism-inspired editorial identity
+- light-first theming with dark-mode support
+- local MDX authoring
+- strong reading comfort for text, code, and images
+- static search and SEO foundations
 
-- a strong public reading experience
-- a clear personal editorial voice
-- a stable local MDX workflow
-- search and SEO for published writing
-- a polished frontend that already feels complete without admin tooling
+## Current Goals
 
-## Phase Goal
+The current phase should deliver a polished personal blog that can stand on its own without any admin panel or login system.
 
-Deliver a complete personal blog experience that supports:
+Readers should be able to:
 
-- publishing essays with local MDX files
-- browsing through homepage, archive, tags, and article pages
-- full-text discovery through static search
-- foundational SEO metadata with room for expansion
-- a playful claymorphism-inspired visual identity with strong long-form readability
+- discover content from the homepage, archive, tags, and search
+- read text-and-image technical articles comfortably
+- switch between Chinese-first public routes and English UI mirrors
+- navigate through a coherent archive with tags and related content
+
+Authors should be able to:
+
+- publish through local MDX files
+- manage frontmatter-driven metadata
+- extend the archive without depending on a CMS
 
 ## In Scope
 
-- Home, blog archive, article detail, tags, and about pages
-- local MDX files under `content/posts`
-- frontmatter-driven metadata, draft filtering, tag aggregation
-- previous and next article navigation
-- image-friendly MDX presentation with figure, caption, and gallery support
-- Pagefind search and tag-driven discovery
-- route metadata, canonical URLs, Open Graph, and Twitter metadata
-- default light theme with dark-mode support
-- reading progress on article pages
+- public routes and reader-facing UI
+- Chinese default routes plus English mirrored site UI routes under `/en`
+- local MDX content source
+- frontmatter-driven metadata
+- tag archive and tag filtering
+- search powered by Pagefind
+- route metadata, sitemap, robots, and JSON-LD
+- reading progress
+- article media modules with `figure`, `caption`, `gallery`, and lightbox support
+- light/dark theme switching
 
 ## Out Of Scope
 
-- login or author authentication
-- admin dashboard
-- online editor
-- media library
-- role and permission system
-- database-backed post management
-- scheduled publishing workflows
-- comment moderation backend
-- analytics dashboard
-- multi-author publishing
+- CMS implementation
+- login and authentication
+- admin routes or dashboard tooling
+- database-backed content editing
+- comments and moderation
+- analytics dashboards
+- newsletter systems
+- multi-author workflows
 
-## UX Requirements
+These may become future phased extensions, but they are not part of the current product definition.
 
-- Homepage should feel like an editorial entry point, not a marketing landing page.
-- Archive should support fast scanning with clear featured hierarchy and metadata.
-- Article pages are the highest-priority experience and must optimize for reading comfort, image-and-text flow, code formatting, and low distraction.
-- Search should feel like part of the editorial product, not a generic launcher.
+## Current Product Qualities
 
-## Visual Direction
+The blog should feel:
 
-The current visual direction is playful editorial claymorphism.
+- editorial rather than template-driven
+- playful on the shell, calm in the reading surface
+- vivid without becoming visually noisy
+- image-friendly without turning article pages into decorative galleries
+- technically grounded and useful to working engineers
 
-Key traits:
+## Current Implementation Reality
 
-- default light theme, dark mode with the same personality
-- rounded, tactile surfaces and pill-shaped controls
-- vivid but controlled accents across coral, yellow, blue, green, purple, and pink
-- softer depth and clay-like elevation rather than hard mechanical panels
-- quieter article surfaces than homepage and navigation surfaces
+The repository already includes:
 
-Avoid:
+- homepage, archive, article, tags, tag archive, and about pages
+- Chinese-first and English-mirrored route trees
+- local MDX content under `content/posts`
+- Pagefind search modal
+- sitemap, robots, and structured data
+- reading progress and article TOC support
+- article figure/gallery/lightbox support
+- playful claymorphism visual system with theme switching
 
-- reverting to a cold cyber-terminal dashboard identity
-- generic purple AI gradients
-- excessive bloom and blur
-- decorative motion that competes with reading
-- overly playful article bodies that harm long-form readability
+## Next Development Priorities
 
-## Technical Direction
+The next current-phase wave should focus on:
 
-- Next.js App Router
-- React
-- TypeScript
-- local MDX content
-- `gray-matter`
-- `@mdx-js/mdx`
-- `remark-gfm`
-- Pagefind
+1. publishing baseline closure
+2. author workflow and migration template improvements
+3. distribution additions such as feeds and manifest support
+4. curated migration of original CSDN articles into native site content
 
-Preferred architecture:
+## Content Direction
 
-- local file-based content repository
-- static-compatible routing
-- route-driven metadata
-- reusable UI components
-- no database dependency in the current phase
+The next content growth wave should emphasize the user's original writing around:
+
+- databases
+- systems
+- servers
+- practical engineering notes
+
+The first curated migration batch should be manually selected, rewritten, and adapted to fit Rendering's current editorial style rather than bulk-imported.
 
 ## Success Criteria
 
-The phase is successful when:
+The current phase is successful when:
 
-- the site works as a complete personal blog without admin tooling
-- publishing through local MDX is straightforward
-- all public pages feel visually cohesive
-- article pages support both long-form text and image-heavy content well
-- search and tag navigation help readers discover content quickly
-- the site has a solid SEO baseline and a clean path for structured-data expansion
+- the public site feels complete and polished without CMS features
+- authoring through MDX remains sustainable
+- search and SEO are dependable
+- the archive feels increasingly substantial
+- the blog can grow through curated, native-feeling technical writing

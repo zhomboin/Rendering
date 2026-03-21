@@ -12,3 +12,4 @@ coverage
 worktrees
 public/pagefind
 *.log
+*.tsbuildinfo
