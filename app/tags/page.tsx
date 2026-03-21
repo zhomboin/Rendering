@@ -28,17 +28,18 @@ export default function TagsPage() {
     <>
       <section className="section-band tag-map-band">
         <div className="section-kicker">Tag Candy Jar</div>
-        <h1 className="page-title">从主题标签继续往下逛</h1>
+        <h1 className="page-title">Browse the archive through topic clusters.</h1>
         <p className="page-copy">
-          标签页现在更像一张兴趣地图。每个主题都会带出一篇代表文章，让你先感受到它的气质，再决定要不要顺着这个方向继续读下去。
+          The tag map is no longer just a count board. Every theme now opens into its own archive page, so you can share,
+          revisit, and explore a topic without losing the playful shape of the blog.
         </p>
       </section>
 
       <section className="section">
         <SectionHeading
           kicker="Signal Groups"
-          title="按主题浏览，也按代表内容快速进入"
-          copy="标签卡不再只是计数器，它会告诉你这个主题现在最值得先点开哪一篇。"
+          title="Start from the topic that feels most alive, then open its full archive."
+          copy="Representative essays still help you get the vibe of a tag quickly, but the primary action now takes you into a dedicated tag archive built for deeper browsing."
         />
 
         {spotlightTag ? (
@@ -50,7 +51,8 @@ export default function TagsPage() {
               </div>
               <h2 className="card-title">{spotlightTag.name}</h2>
               <p className="metric-detail tag-card-summary">
-                当前最活跃的主题会先被拉成一张更完整的主卡，让标签页也有更清楚的起点，而不是一排排同权重的信息块。
+                The loudest topic gets the roomiest card so the page still has a clear place to begin. It acts like a front
+                door into a stronger, shareable archive for that theme.
               </p>
               {spotlightTag.leadPost ? (
                 <div className="tag-card-lead">
@@ -61,10 +63,15 @@ export default function TagsPage() {
                   <p className="metric-detail">{spotlightTag.leadExcerpt}</p>
                 </div>
               ) : null}
-              <div className="tag-card-footer section" style={{ marginTop: 18 }}>
-                <Link className="button-link button-link--primary" href={spotlightTag.leadPost ? `/blog/${spotlightTag.leadPost.slug}` : "/blog"}>
-                  Read spotlight article
+              <div className="tag-card-footer section tag-card-links" style={{ marginTop: 18 }}>
+                <Link className="button-link button-link--primary" href={`/tags/${spotlightTag.slug}`}>
+                  Open Tag Archive
                 </Link>
+                {spotlightTag.leadPost ? (
+                  <Link className="button-link button-link--secondary" href={`/blog/${spotlightTag.leadPost.slug}`}>
+                    Read Lead Article
+                  </Link>
+                ) : null}
               </div>
             </article>
 
@@ -83,8 +90,8 @@ export default function TagsPage() {
                     </Link>
                   ) : null}
                   <div className="tag-card-footer">
-                    <Link className="button-link button-link--secondary" href={tag.leadPost ? `/blog/${tag.leadPost.slug}` : "/blog"}>
-                      Read entry
+                    <Link className="button-link button-link--secondary" href={`/tags/${tag.slug}`}>
+                      Open Archive
                     </Link>
                   </div>
                 </article>

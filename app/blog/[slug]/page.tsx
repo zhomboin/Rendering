@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleMeta } from "@/components/article-meta";
 import { mdxComponents } from "@/components/mdx-components";
@@ -6,6 +6,7 @@ import { PrevNextNav } from "@/components/prev-next-nav";
 import { ReadingProgress } from "@/components/reading-progress";
 import { TocPanel } from "@/components/toc-panel";
 import { getAdjacentPosts, getAllPostSlugs, getPostBySlug } from "@/lib/content";
+import { buildArticleJsonLd } from "@/lib/seo";
 
 export function generateStaticParams() {
   return getAllPostSlugs().map((slug) => ({ slug }));
@@ -51,9 +52,11 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
   const adjacent = getAdjacentPosts(post.slug);
   const Content = post.Content;
   const articleId = `article-${post.slug}`;
+  const articleJsonLd = buildArticleJsonLd({ ...post.metadata, slug: post.slug });
 
   return (
     <>
+      <script dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} type="application/ld+json" />
       <ReadingProgress targetId={articleId} />
 
       <section className="section-band article-header-band">

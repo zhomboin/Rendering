@@ -9,7 +9,7 @@
     "build:app": "next build",
     "build:search": "node scripts/build-search-index.mjs",
     "start": "next start",
-    "test": "node lib/content.test.js && node lib/ui-state.test.js && node lib/article-media.test.js && node lib/archive-layout.test.js"
+    "test": "node lib/content.test.js && node lib/ui-state.test.js && node lib/article-media.test.js && node lib/archive-layout.test.js && node lib/tag-discovery.test.js && node lib/seo.test.js"
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
@@ -27,4 +27,3 @@
     "typescript": "5.8.2"
   }
 }
-

@@ -2,22 +2,29 @@
 
 [中文](./README.md)
 
-`Rendering` is a technical blog project built with `Next.js 15`. It currently ships with a runnable public-facing prototype, a local `MDX` content source, and a global `Pagefind`-powered static search modal.
+`Rendering` is a personal technical blog built with `Next.js 15`. It currently ships with a runnable public frontend, a local `MDX` content source, and `Pagefind`-powered static full-text search.
 
-The current visual direction is a cold terminal cyber-tech style focused on:
+The current product direction is not a CMS. It is a personal publishing site focused on editorial personality, long-form reading comfort, and image-friendly technical writing.
 
-- long-form readability
-- a restrained system-like visual language
-- local MDX-based content management
+## Current Product Direction
+
+- a playful editorial blog with claymorphism-inspired surfaces
+- a light-first theme with dark-mode support
+- vivid but controlled color
+- strong text-and-image reading comfort
+- a local MDX workflow
 - static search with extensible SEO foundations
 
 ## Current Features
 
-- Home, blog index, blog detail, tags, and about pages
+- Home, blog archive, article detail, tags, and about pages
 - Local content source from `content/posts/*.mdx`
 - Frontmatter-driven post metadata
-- Dynamic SEO metadata for article pages
+- Draft filtering, tag aggregation, and previous/next article navigation
+- `figure / caption / gallery` article media modules with lightbox support
+- Reading-progress tracking on article pages
 - Global `Pagefind` search modal
+- Baseline metadata, Open Graph, and Twitter metadata
 - Automatic search-index generation after build
 
 ## Tech Stack
@@ -31,126 +38,22 @@ The current visual direction is a cold terminal cyber-tech style focused on:
 - `remark-gfm`
 - `Pagefind`
 
-## Project Structure
-
-```text
-app/                  App Router routes
-components/           Site and content components
-content/posts/        Local MDX articles
-lib/                  Content repository, MDX parsing, site config
-public/               Static assets
-scripts/              Build helper scripts
-docs/                 Design notes and implementation plans
-```
-
 ## Local Development
-
-Install dependencies:
 
 ```bash
 npm install
-```
-
-Start the dev server:
-
-```bash
 npm run dev
-```
-
-Run content-layer tests:
-
-```bash
 npm test
-```
-
-Run the production build:
-
-```bash
 npm run build
 ```
 
-Notes:
+## Out Of Scope For The Current Phase
 
-- `npm run build` runs `next build` first
-- then executes `scripts/build-search-index.mjs`
-- and finally writes the Pagefind index to `public/pagefind/`
+- login
+- author authentication
+- admin tooling
+- database-backed content editing
+- media management
+- multi-author publishing
 
-## Writing Content
-
-Posts live in:
-
-```text
-content/posts/*.mdx
-```
-
-Each filename becomes the default slug, for example:
-
-```text
-content/posts/designing-a-terminal-first-blog.mdx
--> /blog/designing-a-terminal-first-blog
-```
-
-Current frontmatter fields:
-
-```yaml
----
-title: Example Title
-description: Example summary
-publishedAt: 2026-03-18
-tags:
-  - nextjs
-  - rendering
-draft: false
----
-```
-
-Rules:
-
-- posts with `draft: true` are excluded from public routes
-- `description` is used for both UI summaries and SEO descriptions
-- `tags` feed tag aggregation and search context
-
-## Search
-
-The project uses `Pagefind` for static full-text search, but the UI is custom rather than the default widget.
-
-Open search by:
-
-- clicking `Search Index` in the header
-- pressing `/`
-- pressing `Ctrl/Cmd + K`
-
-Search results display:
-
-- title
-- matching excerpt
-- tag context
-- article path
-
-## SEO
-
-The project currently includes foundational SEO:
-
-- global `metadataBase`
-- static metadata for top-level public pages
-- dynamic metadata for article pages
-- canonical URLs
-- basic Open Graph fields
-- basic Twitter metadata
-
-Not implemented yet:
-
-- `sitemap.xml`
-- `robots.txt`
-- JSON-LD
-- dynamic OG images
-
-## Notes
-
-The repository is still in a frontend-first phase. Admin features, database integration, and authentication are not yet wired into the current runnable app.
-
-At this stage, the project works best as:
-
-- a public blog frontend prototype
-- a content and visual baseline
-- a foundation for future work on database integration, comments, deployment, and extended SEO
+Those capabilities are reserved for a future CMS stage rather than being front-loaded now.

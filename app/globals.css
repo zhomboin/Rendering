@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   color-scheme: light;
   --bg: #fff8ef;
   --bg-gradient-a: #ffd55c;
@@ -1378,6 +1378,84 @@ main {
 
 .tag-card--showcase .button-link {
   width: 100%;
+}
+
+.archive-filter-panel,
+.archive-filter-summary,
+.archive-empty-panel {
+  padding: 28px;
+}
+
+.archive-filter-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(123, 224, 152, 0.22));
+}
+
+.archive-filter-list {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.archive-filter-chip {
+  gap: 10px;
+  font-weight: 800;
+}
+
+.archive-filter-chip--active {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--accent-coral), var(--accent-yellow));
+  color: var(--text-strong);
+}
+
+.archive-filter-chip-count {
+  min-width: 30px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.42);
+  font-size: 0.76rem;
+  font-weight: 900;
+  color: var(--text-strong);
+}
+
+.archive-filter-chip--active .archive-filter-chip-count {
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.archive-filter-note {
+  margin: 18px 0 0;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+
+.archive-filter-summary,
+.archive-empty-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 127, 115, 0.22));
+}
+
+.archive-summary-heading,
+.tag-card-links {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.archive-filter-summary-copy {
+  max-width: 60ch;
+}
+
+.archive-featured-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.tag-archive-band {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(126, 216, 255, 0.28));
+}
+
+.tag-card-links .button-link {
+  flex: 1 1 220px;
 }
 
 .home-side-stack {
