@@ -1,6 +1,6 @@
----
-title: "用 Docker 搭一个 Redis Sentinel 高可用集群"
-description: "从网络、主从、Sentinel 配置到故障切换验证，完整搭建一个 1 主 2 从 3 Sentinel 的 Redis 高可用环境。"
+﻿---
+title: "Redis 哨兵模式部署--docker版本"
+description: "记录用 Docker 部署 Redis 哨兵模式的完整过程，包括 1 主 2 从 3 Sentinel、网络配置、单容器部署、docker compose 与故障转移验证。"
 publishedAt: "2026-03-19"
 tags:
   - redis
@@ -9,74 +9,117 @@ tags:
 draft: false
 ---
 
-## Why this matters
+## redis sentinel 简介
 
-单机 Redis 跑起来很快，但一旦它承担真正的缓存、会话或轻量队列职责，单点故障就会立刻暴露出来。主节点一挂，客户端找不到新的主节点，服务就会从“快”直接变成“不可用”。
+Redis Sentinel 是 Redis 官方提供的高可用（HA）解决方案，用于 **监控主从架构中的故障并自动完成故障转移**。当主节点（Master）宕机时，Sentinel 能自动选举新的主节点，通知从节点（Slave）和客户端更新配置，实现服务无缝切换。其核心功能包括：
 
-Redis Sentinel 的价值就在这里。它不是把 Redis 变成分布式数据库，而是在主从基础上补上一层监控、故障判定和自动切换，让系统在主节点失效时还能尽快恢复可写状态。
+- 监控：持续检查 Redis 主从节点的健康状态。
+- 自动故障转移：主节点故障时，自动将从节点提升为主节点。
+- 配置提供：为客户端动态推送最新的主节点地址。
+- 通知：通过 API 通知管理员节点故障信息。
 
-## What is happening
+本次使用 **1 主 + 2 从 + 3 Sentinel** 的架构进行部署。
 
-这套方案的最小闭环可以概括成：
+## 准备环境
 
-- 1 个主节点负责写入。
-- 2 个副本节点负责复制数据。
-- 3 个 Sentinel 节点负责监控、投票和触发故障转移。
+- 获取 Redis Docker 镜像。
 
-Sentinel 自己不存业务数据，它关注的是三件事：
+```bash
+docker pull redis:7.4.4
+docker images
+```
 
-1. 主节点是不是还活着。
-2. 当前副本里谁适合接任主节点。
-3. 客户端和其他副本应该切到哪里。
-
-本文用 Docker 把这套拓扑在一台机器上跑起来，重点不是追求最少命令，而是把目录、网络、配置和验证路径整理清楚。
-
-## Walkthrough
-
-### 先把目录和网络规划好
-
-先准备一个独立目录，避免主节点、副本和 Sentinel 的数据与配置散在别处：
+- 创建目录 `/home/docker/redis-sentinel`，将后续相关的配置文件都集中存放在该目录。
 
 ```bash
 mkdir -p /home/docker/redis-sentinel
+```
+
+- 依次创建 master、salve、sentinel 的目录文件夹。
+
+```bash
 mkdir -p /home/docker/redis-sentinel/master-data
-mkdir -p /home/docker/redis-sentinel/slave1-data
-mkdir -p /home/docker/redis-sentinel/slave2-data
+mkdir -p /home/docker/redis-sentinel/salve1-data
+mkdir -p /home/docker/redis-sentinel/salve2-data
 mkdir -p /home/docker/redis-sentinel/sentinel1-data
 mkdir -p /home/docker/redis-sentinel/sentinel2-data
 mkdir -p /home/docker/redis-sentinel/sentinel3-data
 ```
 
-然后单独创建一个 bridge 网络，让所有容器在同一网段通信：
+- 创建用于 Redis 通信的专属 bridge。
 
 ```bash
-docker network create \
-  --driver bridge \
-  --subnet 172.16.0.0/24 \
-  --gateway 172.16.0.1 \
-  redis-bridge
+docker network create --driver bridge --subnet 172.16.0.0/24 --gateway 172.16.0.1 redis-bridge
 ```
 
-这么做的好处是，主从和 Sentinel 之间的地址关系稳定，排查也更直接。
+- 查看是否创建成功。
 
-### 主节点配置只保留关键项就够了
+```bash
+docker network ls
+```
 
-主节点配置里最值得先确认的是端口、密码和持久化：
+### 关于 docker 网络
+
+> 参考文档：[https://outmanzzq.github.io/2019/10/22/docker-network/](https://outmanzzq.github.io/2019/10/22/docker-network/)
+
+Docker 默认有三个网络，可以通过 `docker network ls` 查看：
+
+```bash
+NETWORK ID     NAME     DRIVER    SCOPE
+9ac8281b182c   bridge   bridge    local
+99abdb470354   host     host      local
+8e983d1c7d86   none     null      local
+```
+
+Docker 内置这三个网络，运行容器时，你可以使用 `--network` 标志来指定容器应连接到哪些网络；如果不指定，则 Docker 默认使用 `--network=bridge`。
+
+```bash
+docker run --network=host
+```
+
+- `host`：与宿主机在同一个网络，没有独立 IP。
+- `none`：该模式将容器放置在它自己的网络栈中，但是并不进行任何配置，相当于关闭了容器的网络功能。
+- `bridge`：容器连接到 `docker0` 虚拟网卡，通过 `docker0` 网桥以及 Iptables nat 表配置与宿主机通信。
+
+通过 `ifconfig` 可以查看到 `docker0`。
+
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/57d509653f7d45ea9fc69e369c5d5f60.png"
+  alt="docker0 网桥信息"
+  caption="通过 ifconfig 查看 docker0。"
+/>
+
+在 bridge 模式下，连在同一网桥上的容器可以相互通信，本文的 Docker 配置将基于 bridge 模式。
+
+## 单个容器分开部署
+
+### 启动 master
+
+- 创建主节点启动配置文件：`vim /home/docker/redis-sentinel/redis-master.conf`
 
 ```conf
+# redis-master.conf
+
+# 是否为守护进程
+daemonize no
+# 指定 redis 启动端口
 port 6379
 bind 0.0.0.0
+
+# 设置连接密码
 requirepass 123456
+# 从节点连接主节点时使用的密码
 masterauth 123456
+
+# 使用 aop 持久化
 appendonly yes
 ```
 
-对应的启动命令可以写成：
+- 启动 Redis 镜像。
 
 ```bash
-docker run -d \
-  --name redis-master \
-  --network redis-bridge \
+docker run -it -d --name redis-master \
+  --net=redis-bridge \
   --ip 172.16.0.10 \
   -p 6379:6379 \
   -v /home/docker/redis-sentinel/redis-master.conf:/etc/redis/redis.conf \
@@ -85,119 +128,401 @@ docker run -d \
   redis-server /etc/redis/redis.conf
 ```
 
-如果这是线上环境，不建议继续使用示例密码，也要把暴露端口和安全组一起纳入考虑。
+- 查看是否成功启动。
 
-### 副本节点的核心是 replicaof
+```bash
+docker ps
+```
 
-副本配置和主节点非常接近，差别主要在于它要明确复制哪个主节点：
+- 进入容器。
+
+```bash
+docker exec -it redis-master redis-cli -a 123456
+```
+
+### 启动 salve
+
+- 创建从节点启动配置文件：`vim /home/docker/redis-sentinel/redis-salve1.conf`
 
 ```conf
+# redis-salve1.conf
+
+# 是否为守护进程
+daemonize no
+# 指定 redis 启动端口
 port 6379
 bind 0.0.0.0
+
+# 设置连接密码
 requirepass 123456
+# 从节点连接主节点时使用的密码
 masterauth 123456
+
+# 使用 aop 持久化
 appendonly yes
+
+# 指定主节点的 IP 和端口，使用容器名称即可
 replicaof redis-master 6379
 ```
 
-两个副本分别跑起来之后，可以在主节点上确认复制状态：
+- 启动从节点镜像。
+
+```bash
+docker run -it -d --name redis-salve1 \
+  --network redis-bridge \
+  --ip 172.16.0.11 \
+  -p 6479:6379 \
+  -v /home/docker/redis-sentinel/redis-salve1.conf:/etc/redis/redis.conf \
+  -v /home/docker/redis-sentinel/salve1-data:/data \
+  redis:7.4.4 \
+  redis-server /etc/redis/redis.conf
+```
+
+- 查看是否启动成功。
+
+```bash
+docker ps
+```
+
+- 进入从容器，尝试 `set` 会被拒绝。
+
+```bash
+docker exec -it redis-salve1 redis-cli -a 123456
+```
+
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/bd476f9b1349414696049a362887445f.png"
+  alt="从节点写入被拒绝"
+  caption="进入 salve1 后尝试写入会被拒绝。"
+/>
+
+- 验证主从是否成功。
 
 ```bash
 docker exec redis-master redis-cli -a 123456 INFO replication
 ```
 
-如果 `connected_slaves` 和每个 replica 的状态都正常，就说明主从链路已经打通。
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/2c4948e341854e54aa67fdbe8cc9b974.png"
+  alt="Redis 主从复制状态"
+  caption="通过 INFO replication 查看主从复制状态。"
+/>
 
-### Sentinel 只需要抓住四个参数
+### 启动第二个从节点
 
-Sentinel 配置看起来有不少项，但第一次搭建时最关键的是这几项：
+- 创建从节点启动配置文件：`vim /home/docker/redis-sentinel/redis-salve2.conf`
 
 ```conf
-port 26379
+# redis-salve2.conf
+
+# 是否为守护进程
 daemonize no
+# 指定 redis 启动端口
+port 6379
+bind 0.0.0.0
+
+# 设置连接密码
+requirepass 123456
+# 从节点连接主节点时使用的密码
+masterauth 123456
+
+# 使用 aop 持久化
+appendonly yes
+
+# 指定主节点的 IP 和端口，使用容器名称即可
+replicaof 172.16.0.10 6379
+```
+
+- 启动从节点镜像。
+
+```bash
+docker run -it -d --name redis-salve2 \
+  --network redis-bridge \
+  --ip 172.16.0.12 \
+  -p 6579:6379 \
+  -v /home/docker/redis-sentinel/redis-salve2.conf:/etc/redis/redis.conf \
+  -v /home/docker/redis-sentinel/salve2-data:/data \
+  redis:7.4.4 \
+  redis-server /etc/redis/redis.conf
+```
+
+### 启动 sentinel
+
+- 创建 sentinel 配置文件：`vim /home/docker/redis-sentinel/redis-sentinel.conf`
+
+```conf
+# redis-sentinel.conf
+
+# 端口号
+port 26379
+
+daemonize no
+
+# 启用主机名解析
 sentinel resolve-hostnames yes
+# 监控主节点，2 个 Sentinel 同意即触发故障转移
 sentinel monitor mymaster redis-master 6379 2
+# 主节点密码
 sentinel auth-pass mymaster 123456
+# 5 秒无响应视为下线
 sentinel down-after-milliseconds mymaster 5000
 ```
 
-这几行的含义分别是：
+- 启动 sentinel1。
 
-- Sentinel 自己监听 `26379`。
-- 监控名叫 `mymaster` 的主节点。
-- 至少要有 2 个 Sentinel 同意，才进入故障转移流程。
-- 访问主节点时使用同样的密码。
-- 5 秒无响应就判定为下线候选。
+```bash
+docker run -it -d --name redis-sentinel1 \
+  --network redis-bridge \
+  --ip 172.16.0.20 \
+  -p 26379:26379 \
+  -v /home/docker/redis-sentinel/redis-sentinel.conf:/etc/redis/sentinel.conf \
+  -v /home/docker/redis-sentinel/sentinel1-data:/data \
+  redis:7.4.4 \
+  redis-sentinel /etc/redis/sentinel.conf
+```
 
-三个 Sentinel 都启动后，可以用下面的命令确认监控视角：
+- 启动另外两个 sentinel，只需要修改映射端口和容器名称。
+
+```bash
+docker run -it -d --name redis-sentinel2 \
+  --network redis-bridge \
+  --ip 172.16.0.21 \
+  -p 26479:26379 \
+  -v /home/docker/redis-sentinel/redis-sentinel.conf:/etc/redis/sentinel.conf \
+  -v /home/docker/redis-sentinel/sentinel2-data:/data \
+  redis:7.4.4 \
+  redis-sentinel /etc/redis/sentinel.conf
+
+docker run -it -d --name redis-sentinel3 \
+  --network redis-bridge \
+  --ip 172.16.0.22 \
+  -p 26579:26379 \
+  -v /home/docker/redis-sentinel/redis-sentinel.conf:/etc/redis/sentinel.conf \
+  -v /home/docker/redis-sentinel/sentinel3-data:/data \
+  redis:7.4.4 \
+  redis-sentinel /etc/redis/sentinel.conf
+```
+
+### 验证
+
+检测主从状态：
+
+```bash
+docker exec -it redis-master redis-cli -a 123456 INFO replication
+```
+
+查看 Sentinel 监控：
 
 ```bash
 docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL masters
 ```
 
-### 用 docker compose 统一起来会更省心
+## docker compose 部署
 
-如果你不想手工维护 6 个容器命令，最适合的收口方式是改用 `docker compose`。结构上至少应该包含：
+按照上述步骤，可以完整部署 Docker Sentinel 集群，但是需要一个个启动和配置容器，比较麻烦，因此可以通过 `docker compose` 来简化操作。配置文件使用前边单个容器部署中的配置。
 
-- `redis-master`
-- `redis-slave1`
-- `redis-slave2`
-- `redis-sentinel1`
-- `redis-sentinel2`
-- `redis-sentinel3`
-- 外部网络 `redis-bridge`
+新建 `docker compose` 配置文件：`vim /home/docker/redis-sentinel/docker-compose.yml`
 
-这里不一定要追求把所有参数都塞进一份超长配置里，真正重要的是保持以下三点一致：
+```yaml
+networks:
+  redis-bridge:
+    external: true
+    name: redis-bridge
 
-1. 所有服务都挂进同一个网络。
-2. 主从和 Sentinel 的配置文件路径与数据目录映射清晰。
-3. 主节点地址、认证方式和 Sentinel 监控名在所有配置里保持一致。
+services:
+  redis-master:
+    image: redis:7.4.4
+    container_name: redis-master
+    command: redis-server /etc/redis/redis.conf
+    networks:
+      redis-bridge:
+        ipv4_address: 172.16.0.10
+    volumes:
+      - /home/docker/redis-sentinel/redis-master.conf:/etc/redis/redis.conf
+      - /home/docker/redis-sentinel/master-data:/data
+    ports:
+      - "6379:6379"
 
-### 故障切换验证一定要做
+  redis-slave1:
+    image: redis:7.4.4
+    container_name: redis-slave1
+    command: redis-server /etc/redis/redis.conf
+    networks:
+      redis-bridge:
+        ipv4_address: 172.16.0.11
+    depends_on:
+      - redis-master
+    volumes:
+      - /home/docker/redis-sentinel/redis-salve1.conf:/etc/redis/redis.conf
+      - /home/docker/redis-sentinel/salve1-data:/data
+    ports:
+      - "6479:6379"
 
-高可用搭建的真正终点不是“容器都启动了”，而是主节点挂掉以后是否真的能切换。
+  redis-slave2:
+    image: redis:7.4.4
+    container_name: redis-slave2
+    command: redis-server /etc/redis/redis.conf
+    networks:
+      redis-bridge:
+        ipv4_address: 172.16.0.12
+    depends_on:
+      - redis-master
+    volumes:
+      - /home/docker/redis-sentinel/redis-salve2.conf:/etc/redis/redis.conf
+      - /home/docker/redis-sentinel/salve2-data:/data
+    ports:
+      - "6579:6379"
 
-一个最小验证流程可以这样走：
+  redis-sentinel1:
+    image: redis:7.4.4
+    container_name: redis-sentinel1
+    command: redis-sentinel /etc/redis/sentinel.conf
+    networks:
+      redis-bridge:
+        ipv4_address: 172.16.0.20
+    volumes:
+      - /home/docker/redis-sentinel/redis-sentinel.conf:/etc/redis/sentinel.conf
+      - /home/docker/redis-sentinel/sentinel1-data:/data
+    ports:
+      - "26379:26379"
+
+  redis-sentinel2:
+    image: redis:7.4.4
+    container_name: redis-sentinel2
+    command: redis-sentinel /etc/redis/sentinel.conf
+    networks:
+      redis-bridge:
+        ipv4_address: 172.16.0.21
+    volumes:
+      - /home/docker/redis-sentinel/redis-sentinel.conf:/etc/redis/sentinel.conf
+      - /home/docker/redis-sentinel/sentinel2-data:/data
+    ports:
+      - "26479:26379"
+
+  redis-sentinel3:
+    image: redis:7.4.4
+    container_name: redis-sentinel3
+    command: redis-sentinel /etc/redis/sentinel.conf
+    networks:
+      redis-bridge:
+        ipv4_address: 172.16.0.22
+    volumes:
+      - /home/docker/redis-sentinel/redis-sentinel.conf:/etc/redis/sentinel.conf
+      - /home/docker/redis-sentinel/sentinel3-data:/data
+    ports:
+      - "26579:26379"
+```
+
+启动集群：
 
 ```bash
-# 先确认当前主节点
-docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+docker compose up -d
+```
 
-# 停掉主节点
+查看容器启动情况：
+
+```bash
+docker ps
+```
+
+进入 master 验证：
+
+```bash
+docker exec -it redis-master redis-cli -a 123456
+```
+
+主从复制验证：
+
+```bash
+docker exec -it redis-master redis-cli -a 123456 INFO replication
+```
+
+查看 sentinel 状态：
+
+```bash
+docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL masters
+```
+
+批量停止、启动、重启容器：
+
+```bash
+docker compose stop|start|restart
+# 也可以停止指定容器
+docker compose stop|start|restart redis-salve2
+```
+
+清理并重启服务：
+
+```bash
+docker compose stop
+docker compose rm -f
+docker compose up -d
+```
+
+## 测试故障转移
+
+1. 查看原始主节点信息。
+
+```bash
+docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+```
+
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/cd6c9cf17b9d453e9edbeff09ea5ac72.png"
+  alt="故障转移前的主节点信息"
+  caption="通过 Sentinel 查询当前主节点。"
+/>
+
+2. 停止主节点。
+
+```bash
 docker stop redis-master
+```
 
-# 等待数秒后再看新的主节点
+3. 通过容器查看是否成功停止。
+
+```bash
+docker ps
+```
+
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/122a40302c494cc788d4e1a5487eefa6.png"
+  alt="主节点停止后的容器状态"
+  caption="停止 redis-master 后查看容器列表。"
+/>
+
+4. 等待 10 秒后，再通过 Sentinel 查看是否切换为新的主节点。
+
+```bash
 docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
 ```
 
-如果返回的地址已经切到某个副本节点，再登录那个节点做一次写入测试，就能确认它是否已经真正晋升为新的主节点。
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/666320a21f494014803b1dd38424205b.png"
+  alt="故障转移后的新主节点"
+  caption="等待一段时间后，Sentinel 已完成新的主节点切换。"
+/>
 
-## Practical checks
-
-这套环境搭好后，我建议至少固定检查这几件事：
-
-1. 主从复制是否建立。
-
-```bash
-docker exec redis-master redis-cli -a 123456 INFO replication
-```
-
-2. Sentinel 是否都识别到了主节点和副本。
+5. 登录到该从节点确认是否可以执行写入操作。
 
 ```bash
-docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL masters
+docker exec -it redis-salve2 redis-cli -a 123456
 ```
 
-3. 故障切换后，客户端是不是能重新找到可写主节点。
-4. 原主节点恢复后，是重新以副本身份加入，还是因为旧配置导致拓扑混乱。
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/d7075df1f8fa4276a99533198fcff53d.png"
+  alt="新主节点写入验证"
+  caption="登录新的主节点后确认可以执行写入操作。"
+/>
 
-还有两个实际经验值得提前记住：
+6. 最后，再重新启动 `redis-master` 节点，确认是否加入集群。
 
-- 示例里使用的固定 IP、明文密码更适合演示，不适合直接原样进生产。
-- 目录命名、容器命名和配置里的角色名称一定要统一，否则排查复制和切换状态会非常痛苦。
+```bash
+docker restart redis-master
+```
 
-## Closing notes
-
-Redis Sentinel 的难点从来不在某一条命令，而在于你能不能把“主从复制正常”“Sentinel 监控正常”“切换后客户端还能工作”三件事连成一条闭环。
-
-如果你是第一次搭，建议先用本文这种一台机器上的 Docker 拓扑把流程跑通。等你真正把切换过程和验证命令都走过一遍，再迁移到多机环境，心里会稳很多。
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/0c33de1e44be4dc89a4b8252894b81d6.png"
+  alt="原主节点重新加入集群"
+  caption="重新启动 redis-master 后确认节点重新加入集群。"
+/>

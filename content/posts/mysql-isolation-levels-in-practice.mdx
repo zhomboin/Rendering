@@ -1,6 +1,6 @@
----
-title: "MySQL 隔离级别实战：脏读、读已提交与可重复读到底差在哪"
-description: "用可直接复现的 SQL 例子梳理四种隔离级别的差异，并说明 MySQL 为什么依靠锁与 MVCC 共同实现隔离。"
+﻿---
+title: "数据库AICD特性之--隔离性 Isolation"
+description: "介绍数据库事务隔离性的含义、四种隔离级别以及 MySQL 基于锁与 MVCC 的实现方式，并用 SQL 示例演示差异。"
 publishedAt: "2026-03-20"
 tags:
   - mysql
@@ -9,164 +9,236 @@ tags:
 draft: false
 ---
 
-## Why this matters
+相关文章：数据库AICD特性之–原子性 Atomicity、数据库ACID特性之–持久性 Durability、数据库AICD特性之–一致性 Consistency。
 
-隔离级别是数据库里最常见、也最容易被“背定义”代替理解的主题。大家知道有脏读、不可重复读、可重复读和串行化，但一旦进入真实场景，比如排查为什么同一事务里两次查询结果不一样，或者决定某个业务应该选择哪种级别，就会发现只记术语远远不够。
+## 数据库AICD特性之–隔离性 Isolation
 
-更实际的问题是：隔离级别不是只决定“严不严格”，它还决定并发性能、锁竞争和业务一致性的边界。理解这一层，才能在设计系统时做出有意识的选择。
+**隔离性** 是指数据库的并发事务之间的可访问性问题。
 
-## What is happening
+### 隔离性问题引入
 
-事务隔离关心的核心问题其实很朴素：
+首先我们需要知道隔离性问题是如何被引入的。如果只有单个事务的情况下，那么并不存在隔离性问题，当前事务中读到的数据永远是正确的。
 
-> 当多个事务同时读写同一批数据时，当前事务应该看到什么，应该被允许做到什么。
+而当多个事务并发时，则可能存在当前事务 T1 开启时，正在查询 A 表某条数据，同时另一个并发的事务 T2 又对 A 表的该数据做了修改，那么此时就会存在一些问题：
 
-MySQL 并不是靠一套单独的魔法来解决所有级别，而是把两类机制组合起来：
+- 如果事务 T1 读取到了事务 T2 的修改，然后基于修改的数据进行后续操作，但是事务 T2 由于发生了错误，导致数据回滚，那么 T1 读取的数据实际就是错误的，这种错误在金融系统中是无法接受的。
 
-- 锁：用来限制并发写入，以及某些场景下的读取。
-- MVCC：用来支持一致性读，减少普通查询和写入之间的冲突。
+这种存在于多个并发事务之间的影响就叫作事务的隔离性问题。
 
-所以理解隔离级别，不只是记住四个名字，更要知道每个级别大致允许什么现象，以及 InnoDB 在背后主要依赖的是锁、MVCC，还是两者一起工作。
+### 隔离级别
 
-## Walkthrough
+通常数据库针对不同隔离级别的需求，拥有以下四种不同级别的隔离级别：
 
-### 隔离性到底在防什么
+- **读未提交（脏读）**：事务可以读取其它事务未提交的数据。隔离级别最低，性能最高，但是数据一致性最差。
+- **读已提交**：事务中只允许读取其它事务已提交的数据。同一事务中多次读取数据结果可能不一致（不可重复读）。PostgreSQL、SQL Server、Oracle 等数据库默认级别。
+- **可重复读**：同一事务中多次读取结果一致。MySQL 默认级别。
+- **串行化**：强制事务串行化执行，避免了所有并发事务的问题，不过性能最差。
 
-如果只有一个事务在运行，其实没有“隔离性问题”可谈。问题出现于并发场景：事务 T1 正在读，事务 T2 同时在改。
+在实际使用中，需要根据不同需要设置隔离级别：
 
-这时最典型的风险有三类：
+- **高并发 + 低一致性需求**：读未提交或读已提交（如实时统计）。
+- **平衡并发与一致性**：可重复读（如大多数业务场景）。
+- **强一致性需求**：串行化（如金融交易）。
 
-- 读到对方尚未提交的数据，结果对方回滚了。这是脏读。
-- 在同一事务里前后两次读同一条记录，却看到不同结果。这通常对应不可重复读。
-- 在同一事务里按条件查询同一批数据，却突然多出来几行或少了几行。这通常会被概括到幻读语境里。
+### 实现机制
 
-隔离级别本质上就是在这些风险和系统吞吐之间做权衡。
+对于 MySQL，是使用 **锁 + MVCC** 来实现的。
 
-### 四种隔离级别可以先这样理解
+- **读未提交**：允许事务读取其他事务未提交的数据，无需加锁。
+- **读已提交**：
+  - 读取时使用 MVCC 机制配合 undo log 读取最新版本数据，在每次读取时都会创建一个 read view。
+  - 写入数据时则使用行级锁。
+- **可重复读**：
+  - 读取时使用 MVCC 机制配合 undo log 读取最新版本数据，不过只在每个事务开始时创建一个 read view，以此保证整个事务读的一致。
+  - 写入数据时则使用行级锁。
+- **串行化**：读取时使用共享锁，所有的读取操作都会加锁，并且禁用 MVCC，写入数据时使用排他锁。
 
-#### 1. Read Uncommitted
+### 演示
 
-最低的一档。事务可以读到别的事务尚未提交的修改，优点是几乎没有额外阻碍，缺点是数据一致性风险最高。
+相关设置：基于 MySQL 8.x。
 
-如果某些统计结果允许短时间不稳定，这种级别在理论上有存在意义，但对于大多数业务数据，它都太松了。
-
-#### 2. Read Committed
-
-只能读到别的事务已经提交的结果，因此至少避免了脏读。它的典型特征是：同一事务里多次查询，仍然可能读到不同结果。
-
-很多数据库把它作为默认级别，因为它在一致性和并发之间提供了比较平衡的选择。
-
-#### 3. Repeatable Read
-
-MySQL InnoDB 默认级别。普通一致性读会固定在同一个事务视角里，因此同一事务中多次读取同一批数据时，结果更稳定。
-
-它不是“别人不能改”，而是“我这边的普通读取视角不会轻易变化”。
-
-#### 4. Serializable
-
-最严格。可以理解成尽量把并发事务压回接近串行执行的效果。它能避免最多的问题，但也最容易带来等待和吞吐下降。
-
-只有强一致性优先级明显高于吞吐的时候，才值得认真考虑它。
-
-### InnoDB 大致是怎么实现它们的
-
-站在 MySQL InnoDB 的实现角度，可以用一张简化图去理解：
-
-- `READ UNCOMMITTED`：几乎不强调一致性读隔离，允许看到未提交数据。
-- `READ COMMITTED`：普通读主要依赖 MVCC，每次查询创建新的 Read View；写入继续使用锁。
-- `REPEATABLE READ`：普通读同样依赖 MVCC，但事务里会复用第一次生成的 Read View；写入继续使用锁。
-- `SERIALIZABLE`：读取和写入都更依赖锁控制，并发能力明显下降。
-
-这里最值得记住的一点是：
-
-> MySQL 的隔离不是“只有锁”或“只有 MVCC”，而是不同级别下两者占比不同。
-
-### 用三组实验把差异看清楚
-
-#### 实验一：读未提交为什么危险
+查看事务隔离级别：
 
 ```sql
-create table t1 (c1 int, c2 varchar(50));
+-- 查看全局隔离级别
+select @@GLOBAL.transaction_isolation;
+
+-- 查看当前会话隔离级别
+select @@SESSION.transaction_isolation;
+```
+
+修改事务隔离级别：`REPEATABLE READ`、`READ COMMITTED`、`READ UNCOMMITTED`、`SERIALIZABLE`。
+
+```sql
+-- 修改当前会话隔离级别
+SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+```
+
+准备数据：
+
+```sql
+create table t1(c1 int, c2 varchar(50));
 insert into t1 values (1, 'aaaa');
 ```
 
-事务 1 先读：
+#### 读未提交
+
+1. 先修改当前隔离级别为 `READ UNCOMMITTED`。
 
 ```sql
-set session transaction isolation level read uncommitted;
-start transaction;
+SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+```
+
+2. 事务 1 中开启事务，并执行查询。
+
+```sql
+START TRANSACTION;
+select @@SESSION.transaction_isolation;
 select * from t1 where c1 = 1;
 ```
 
-事务 2 修改但不提交：
+3. 事务 2 开启事务，并修改数据。
 
 ```sql
-start transaction;
+START TRANSACTION;
 update t1 set c2 = 'abcd' where c1 = 1;
 ```
 
-事务 1 再查一次，如果已经看到 `abcd`，而事务 2 随后又执行回滚，那事务 1 刚才看到的就是一份从未真正生效的数据。
-
-这也是为什么脏读对金融、订单、库存这类系统几乎不可接受。
-
-#### 实验二：读已提交为什么会前后不一致
+4. 事务 1 再次查询数据。
 
 ```sql
-set session transaction isolation level read committed;
+select * from t1 where c1 = 1;
 ```
 
-事务 1 先查，事务 2 修改后提交，事务 1 再查一次。
-
-这种情况下，事务 1 不会读到事务 2 未提交的值，但一旦事务 2 提交，事务 1 下一次查询就可能拿到新结果。原因在于 `READ COMMITTED` 每次读都会重新建立新的 Read View。
-
-换句话说，它解决了“读脏数据”，但不承诺“同一事务里一直读到同样的版本”。
-
-#### 实验三：可重复读为什么更稳定
+5. 事务 2 执行回滚。
 
 ```sql
-set session transaction isolation level repeatable read;
-create table t2 (c1 int, c2 int);
-insert into t2 values (1, 10), (2, 20);
+rollback;
+select * from t1 where c1 = 1;
 ```
 
-事务 1 先查：
+6. 事务 1 再次查询。
 
 ```sql
-start transaction;
-select * from t2 where c1 = 1;
-```
-
-事务 2 同时更新并插入一条 `c1 = 1` 的数据，再提交：
-
-```sql
-start transaction;
-update t2 set c2 = 15 where c1 = 1;
-insert into t2 values (1, 30);
+select * from t1 where c1 = 1;
 commit;
 ```
 
-如果事务 1 继续做普通一致性读，仍可能保持第一次读取时的视角。这就是 MySQL 默认级别在很多业务里更“稳”的原因。
+从结果中可以看到，事务 1 中查询到了事务 2 没有提交时修改的数据。
 
-## Practical checks
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/54b670419ef3463d9905afffd6836e4e.png"
+  alt="读未提交实验结果"
+  caption="事务 1 在事务 2 未提交时已经读到了修改后的数据。"
+/>
 
-选隔离级别时，我更建议从业务问题反推，而不是先背默认值：
+#### 读已提交
 
-1. 如果业务根本不能接受读到未提交数据，就不要考虑 `READ UNCOMMITTED`。
-2. 如果你更在意吞吐，并且允许同一事务里看到提交后的新结果，`READ COMMITTED` 往往更合适。
-3. 如果你希望一笔事务里的普通读取结果保持稳定，优先考虑 `REPEATABLE READ`。
-4. 如果业务要求极高一致性，而且明确能接受并发下降，再评估 `SERIALIZABLE`。
-
-排查时也有两个实用动作：
+1. 先修改事务级别为 `READ COMMITTED`。
 
 ```sql
-select @@global.transaction_isolation;
-select @@session.transaction_isolation;
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
 ```
 
-先确认隔离级别，再判断查询是不是普通快照读、锁定读，或者已经落到了应用层缓存的影响范围里。很多“数据库读错了”的问题，最后都只是上下文没理清。
+2. 事务 1 开启事务，进行初始查询。
 
-## Closing notes
+```sql
+START TRANSACTION;
+select @@SESSION.transaction_isolation;
+select * from t1 where c1 = 1;
+```
 
-隔离级别真正有用的地方，不在于把定义说得多标准，而在于你能不能根据业务风险判断“该松到哪里、该严到哪里”。
+3. 事务 2 开启事务，修改数据。
 
-如果要把这件事彻底吃透，最值得继续深入的不是再背一遍四种级别，而是把它们和 InnoDB 的锁、MVCC、Read View 一起看。只有这样，你才会明白为什么同样是 MySQL，两个事务的读写结果会在不同级别下表现得那么不一样。
+```sql
+START TRANSACTION;
+update t1 set c2 = 'abcd' where c1 = 1;
+```
+
+4. 事务 1 再次查询。
+
+```sql
+select * from t1 where c1 = 1;
+```
+
+5. 事务 2 提交事务。
+
+```sql
+COMMIT;
+select * from t1 where c1 = 1;
+```
+
+6. 事务 1 再次查询，并关闭事务。
+
+```sql
+select * from t1 where c1 = 1;
+COMMIT;
+```
+
+可以看到，事务 1 在事务 2 修改数据后但是没有提交时，没有查询到事务 2 修改的数据，在事务 2 提交后，事务 1 就可以查询到事务 2 修改的数据。
+
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/3a9ade3362e14c658d638f92d78f73ba.png"
+  alt="读已提交实验结果"
+  caption="事务 2 提交前后，事务 1 的查询结果发生变化。"
+/>
+
+#### 可重复读
+
+1. 先修改事务级别为 `REPEATABLE READ`。
+
+```sql
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+```
+
+2. 使用 `t2` 表进行验证。
+
+```sql
+create table t2 (c1 int, c2 int);
+insert into t2 values (1, 10);
+insert into t2 values (2, 20);
+```
+
+3. 事务 1 开启事务，进行初始查询。
+
+```sql
+START TRANSACTION;
+select @@SESSION.transaction_isolation;
+select * from t2 where c1 = 1;
+```
+
+4. 事务 2 开启事务，修改数据，同时新增一条 `c1 = 1` 的数据。
+
+```sql
+START TRANSACTION;
+update t2 set c2 = 15 where c1 = 1;
+insert into t2 values (1, 30);
+```
+
+5. 事务 1 再次查询。
+
+```sql
+select * from t2 where c1 = 1;
+```
+
+6. 事务 2 提交事务。
+
+```sql
+COMMIT;
+select * from t2 where c1 = 1;
+```
+
+7. 事务 1 再次查询，并关闭事务。
+
+```sql
+select * from t2 where c1 = 1;
+COMMIT;
+```
+
+可以看到，事务 1 中的数据在事务 2 修改后查询结果仍然保持一致。
+
+<Figure
+  src="https://i-blog.csdnimg.cn/direct/15e171adfe634126a216ea056f58c647.png"
+  alt="可重复读实验结果"
+  caption="在可重复读级别下，事务 1 的查询结果保持稳定。"
+/>
