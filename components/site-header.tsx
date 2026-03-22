@@ -1,5 +1,8 @@
+﻿"use client";
+
 import Link from "next/link";
-import { DEFAULT_LOCALE, getMessages, normalizeLocale } from "@/lib/i18n";
+import { usePathname } from "next/navigation";
+import { DEFAULT_LOCALE, getMessages, normalizeLocale, stripLocalePrefix } from "@/lib/i18n";
 import { getLocalizedRoute, getSiteNavigation } from "@/lib/site";
 import { LanguageToggle } from "@/components/language-toggle";
 import { SearchTrigger } from "@/components/search-trigger";
@@ -9,6 +12,22 @@ export function SiteHeader({ locale = DEFAULT_LOCALE }: { locale?: string }) {
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
   const navigation = getSiteNavigation(normalizedLocale);
+  const pathname = usePathname() || getLocalizedRoute(normalizedLocale, "/");
+  const currentPath = stripLocalePrefix(pathname);
+
+  function isActiveNavigationItem(href: string) {
+    const targetPath = stripLocalePrefix(href);
+
+    if (targetPath === "/") {
+      return currentPath === "/";
+    }
+
+    if (targetPath === "/blog") {
+      return currentPath === "/blog" || currentPath.startsWith("/blog/");
+    }
+
+    return currentPath === targetPath;
+  }
 
   return (
     <header className="site-header">
@@ -19,11 +38,20 @@ export function SiteHeader({ locale = DEFAULT_LOCALE }: { locale?: string }) {
 
       <div className="header-controls">
         <nav aria-label="Primary" className="nav-links">
-          {navigation.map((item) => (
-            <Link key={item.href} className="nav-link" href={item.href}>
-              {item.label}
-            </Link>
-          ))}
+          {navigation.map((item) => {
+            const isActive = isActiveNavigationItem(item.href);
+
+            return (
+              <Link
+                key={item.href}
+                aria-current={isActive ? "page" : undefined}
+                className={isActive ? "nav-link nav-link--active" : "nav-link"}
+                href={item.href}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="header-actions">

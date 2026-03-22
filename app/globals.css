@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   color-scheme: light;
   --bg: #fff8ef;
   --bg-gradient-a: #ffd55c;
@@ -276,6 +276,13 @@ main {
   background: linear-gradient(180deg, var(--surface-strong), var(--surface));
   color: var(--text-soft);
   font-weight: 700;
+}
+
+.nav-link--active {
+  background: linear-gradient(180deg, var(--surface-alt), var(--surface-strong));
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-lift);
+  color: var(--text-strong);
 }
 
 .search-trigger {
@@ -2087,3 +2094,4 @@ main {
 .hero-panel .hero-copy {
   max-width: none;
 }
+
