@@ -4,7 +4,7 @@
 
 `Rendering` is a personal technical blog built with `Next.js 15`. The current phase already includes a runnable public frontend, a local `MDX` content source, tag archive and filtering flows, Pagefind-powered search, and a Chinese-first plus English-mirrored site UI structure.
 
-The current product direction is not a CMS. It is a personal publishing site focused on editorial personality, long-form reading comfort, and image-friendly technical writing.
+`Rendering` is a personal publishing site focused on editorial personality, long-form reading comfort, and image-friendly technical writing.
 
 ## Current Product Direction
 
