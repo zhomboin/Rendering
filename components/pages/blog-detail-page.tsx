@@ -81,28 +81,33 @@ export async function BlogDetailPageContent({ locale = DEFAULT_LOCALE, slug }: {
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} type="application/ld+json" />
       <ReadingProgress locale={normalizedLocale} targetId={articleId} />
 
-      <section className="section-band article-header-band">
-        <div className="article-headline-row">
-          <div className="section-kicker">{messages.article.storyCapsule}</div>
-          <span className="meta-pill">{post.metadata.coverLabel}</span>
-        </div>
-        <h1 className="article-title" data-pagefind-meta="title">
-          {post.metadata.title}
-        </h1>
-        <p className="article-intro">{post.metadata.description}</p>
-        <p data-pagefind-meta="tags" hidden>
-          {post.metadata.tags.join(", ")}
-        </p>
-        <ArticleMeta locale={normalizedLocale} publishedAt={post.metadata.publishedAt} readingTime={post.metadata.readingTime} tags={post.metadata.tags} />
-      </section>
+      <div className="article-page">
+        <section className="section-band article-header-band">
+          <div className="article-content-column article-header-inner">
+            <div className="article-headline-row">
+              <div className="section-kicker">{messages.article.storyCapsule}</div>
+              <span className="meta-pill">{post.metadata.coverLabel}</span>
+            </div>
+            <h1 className="article-title" data-pagefind-meta="title">
+              {post.metadata.title}
+            </h1>
+            <p className="article-intro">{post.metadata.description}</p>
+            <p data-pagefind-meta="tags" hidden>
+              {post.metadata.tags.join(", ")}
+            </p>
+            <ArticleMeta locale={normalizedLocale} publishedAt={post.metadata.publishedAt} readingTime={post.metadata.readingTime} tags={post.metadata.tags} />
+          </div>
+        </section>
 
-      <section className="article-layout section">
-        <article className="article-shell article-body mdx-body" id={articleId}>
-          <Content components={mdxComponents} />
-          <PrevNextNav locale={normalizedLocale} next={adjacent.next} previous={adjacent.previous} />
+        <article className="article-shell" id={articleId}>
+          <div className="article-content-column article-body mdx-body">
+            <Content components={mdxComponents} />
+            <PrevNextNav locale={normalizedLocale} next={adjacent.next} previous={adjacent.previous} />
+          </div>
         </article>
+
         <TocPanel locale={normalizedLocale} sections={post.headings} />
-      </section>
+      </div>
     </>
   );
 }

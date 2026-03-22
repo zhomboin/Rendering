@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n";
@@ -55,19 +55,14 @@ export function ReadingProgress({ targetId, locale = DEFAULT_LOCALE }: { targetI
   }, [targetId]);
 
   return (
-    <>
-      <div aria-hidden="true" className="reading-progress-bar">
-        <span className="reading-progress-fill" style={{ transform: `scaleX(${progress / 100})` }} />
+    <div aria-live="polite" className="reading-progress-pill">
+      <div className="reading-progress-summary">
+        <div className="reading-progress-copy">{label}</div>
+        <div className="reading-progress-value">{progress}%</div>
       </div>
-      <div aria-live="polite" className="reading-progress-pill">
-        <div>
-          <div className="reading-progress-copy">{label}</div>
-          <div className="reading-progress-value">{progress}%</div>
-        </div>
-        <div aria-hidden="true" className="reading-progress-mini-track">
-          <span className="reading-progress-mini-fill" style={{ transform: `scaleX(${progress / 100})` }} />
-        </div>
+      <div aria-hidden="true" className="reading-progress-mini-track">
+        <span className="reading-progress-mini-fill" style={{ transform: `scaleX(${progress / 100})` }} />
       </div>
-    </>
+    </div>
   );
 }
