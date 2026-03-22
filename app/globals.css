@@ -2082,3 +2082,8 @@ main {
   color: inherit;
   text-decoration: none;
 }
+
+.hero-panel .hero-title,
+.hero-panel .hero-copy {
+  max-width: none;
+}
