@@ -8,7 +8,7 @@ export default function NotFound() {
         <div className="section-kicker">Page Lost</div>
         <h1 className="page-title">This page is not part of the current archive.</h1>
         <p className="page-copy not-found-copy">
-          You can head back home, reopen the blog archive, or use the tag map to keep moving through the published writing.
+          You can head back home or reopen the blog archive to keep moving through the published writing.
         </p>
         <div className="not-found-code">404</div>
         <div className="not-found-actions">
@@ -17,9 +17,6 @@ export default function NotFound() {
           </Link>
           <Link className="button-link button-link--secondary" href={getLocalizedRoute("en", "/blog")}>
             Browse Archive
-          </Link>
-          <Link className="button-link button-link--secondary" href={getLocalizedRoute("en", "/tags")}>
-            View Tags
           </Link>
         </div>
       </div>

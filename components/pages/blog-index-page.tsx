@@ -3,10 +3,10 @@ import Link from "next/link";
 import { PostCard } from "@/components/post-card";
 import { SearchBar } from "@/components/search-bar";
 import { SectionHeading } from "@/components/section-heading";
-import { buildTagShowcase, splitArchivePosts } from "@/lib/archive-layout";
+import { splitArchivePosts } from "@/lib/archive-layout";
 import { getAllPosts, getPostsByTag, getTagSummaries } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
-import { formatArticleCount, getLocalizedRoute, getTagArchivePath } from "@/lib/site";
+import { formatArticleCount, getLocalizedRoute } from "@/lib/site";
 import { getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 import { buildTagFilterLinks, resolveTagFilter } from "@/lib/tag-discovery";
 
@@ -14,31 +14,20 @@ type BlogIndexSearchParams = {
   tag?: string | string[];
 };
 
+function hasText(value?: string) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 function createTagDescription(locale: string, name: string, count: number) {
   return normalizeLocale(locale) === "zh"
-    ? `浏览 Rendering 中归入 ${name} 的 ${count} 篇文章。`
+    ? `浏览 Rendering 中归类到 ${name} 的 ${count} 篇文章。`
     : `Browse ${count} Rendering article${count === 1 ? "" : "s"} filed under ${name}.`;
 }
 
-function createFilteredFeaturedTitle(locale: string, tagName: string) {
-  return normalizeLocale(locale) === "zh" ? `先从 ${tagName} 里的主文章开始。` : `Start with the lead story inside ${tagName}.`;
-}
-
-function createFilteredStackTitle(locale: string, tagName: string) {
-  return normalizeLocale(locale) === "zh" ? `继续沿着 ${tagName} 往下读。` : `Keep going through the rest of ${tagName}.`;
-}
-
 function createMissingTagCopy(locale: string, requestedSlug: string, fallback: string) {
-  return normalizeLocale(locale) === "zh" ? `标签 “${requestedSlug}” 目前还没有公开内容，因此仍然展示完整归档。` : fallback;
-}
-
-function mapTagShowcase(locale: string, tags: ReturnType<typeof getTagSummaries>) {
-  const messages = getMessages(locale);
-  return buildTagShowcase(tags, getPostsByTag).map((tag) => ({
-    ...tag,
-    articleCountLabel: formatArticleCount(locale, tag.count),
-    leadExcerpt: tag.leadPost?.excerpt ?? messages.common.moreComing
-  }));
+  return normalizeLocale(locale) === "zh"
+    ? `标签 “${requestedSlug}” 当前还没有公开内容，因此仍然展示完整文章归档。`
+    : fallback;
 }
 
 export function getBlogIndexPageMetadata(locale = DEFAULT_LOCALE, searchParams: BlogIndexSearchParams = {}): Metadata {
@@ -82,14 +71,14 @@ export function getBlogIndexPageMetadata(locale = DEFAULT_LOCALE, searchParams: 
   }
 
   const description = createTagDescription(normalizedLocale, activeTag.name, activeTag.count);
-  const canonicalPath = getTagArchivePath(normalizedLocale, activeTag.slug);
+  const canonicalPath = getLocalizedPath(`/blog?tag=${encodeURIComponent(activeTag.slug)}`, normalizedLocale);
 
   return {
-    title: `${activeTag.name} ${messages.blogArchive.metadataTitle}`,
+    title: `${activeTag.name} | ${messages.blogArchive.metadataTitle}`,
     description,
     alternates: {
       canonical: canonicalPath,
-      languages: getLocalizedAlternates(`/tags/${activeTag.slug}`)
+      languages: getLocalizedAlternates(`/blog?tag=${encodeURIComponent(activeTag.slug)}`)
     },
     robots: {
       index: false,
@@ -97,7 +86,7 @@ export function getBlogIndexPageMetadata(locale = DEFAULT_LOCALE, searchParams: 
     },
     openGraph: {
       type: "website",
-      title: `${activeTag.name} ${messages.common.openTagArchive}`,
+      title: `${activeTag.name} | ${messages.blogArchive.metadataTitle}`,
       description,
       locale: messages.locale.ogLocale,
       url: canonicalPath,
@@ -111,7 +100,7 @@ export function getBlogIndexPageMetadata(locale = DEFAULT_LOCALE, searchParams: 
     },
     twitter: {
       card: "summary_large_image",
-      title: `${activeTag.name} ${messages.common.openTagArchive}`,
+      title: `${activeTag.name} | ${messages.blogArchive.metadataTitle}`,
       description,
       images: [socialImage]
     }
@@ -132,7 +121,6 @@ export function BlogIndexPageContent({
   const { activeTag, hasRequestedTag, requestedSlug } = resolveTagFilter(searchParams.tag, tags);
   const filteredPosts = activeTag ? getPostsByTag(activeTag.slug) : allPosts;
   const { featured, archive } = splitArchivePosts(filteredPosts, activeTag ? 1 : 2);
-  const quickSignals = mapTagShowcase(normalizedLocale, tags.slice(0, 4));
   const filterLinks = buildTagFilterLinks(tags, activeTag?.slug ?? "").map((tagLink) => ({
     ...tagLink,
     href: getLocalizedPath(tagLink.href, normalizedLocale)
@@ -144,9 +132,9 @@ export function BlogIndexPageContent({
   return (
     <>
       <section className="section-band archive-hero-band">
-        <div className="section-kicker">{messages.blogArchive.heroKicker}</div>
-        <h1 className="page-title">{messages.blogArchive.heroTitle}</h1>
-        <p className="page-copy">{messages.blogArchive.heroCopy}</p>
+        {hasText(messages.blogArchive.heroKicker) ? <div className="section-kicker">{messages.blogArchive.heroKicker}</div> : null}
+        {hasText(messages.blogArchive.heroTitle) ? <h1 className="page-title">{messages.blogArchive.heroTitle}</h1> : null}
+        {hasText(messages.blogArchive.heroCopy) ? <p className="page-copy">{messages.blogArchive.heroCopy}</p> : null}
       </section>
 
       <section className="section archive-layout-grid">
@@ -155,9 +143,9 @@ export function BlogIndexPageContent({
             <SearchBar locale={normalizedLocale} />
 
             <article className="panel archive-guide">
-              <div className="meta-label">{messages.blogArchive.guideKicker}</div>
-              <h2 className="section-title">{messages.blogArchive.guideTitle}</h2>
-              <p className="section-copy">{messages.blogArchive.guideCopy}</p>
+              {hasText(messages.blogArchive.guideKicker) ? <div className="meta-label">{messages.blogArchive.guideKicker}</div> : null}
+              {hasText(messages.blogArchive.guideTitle) ? <h2 className="section-title">{messages.blogArchive.guideTitle}</h2> : null}
+              {hasText(messages.blogArchive.guideCopy) ? <p className="section-copy">{messages.blogArchive.guideCopy}</p> : null}
               <div className="archive-stats">
                 <div className="archive-stat">
                   <span className="archive-stat-value">{filteredPosts.length}</span>
@@ -168,17 +156,12 @@ export function BlogIndexPageContent({
                   <span className="archive-stat-label">{messages.blogArchive.topicTags}</span>
                 </div>
               </div>
-              <div className="hero-actions section" style={{ marginTop: 18 }}>
-                <Link className="button-link button-link--secondary" href={getLocalizedRoute(normalizedLocale, "/tags")}>
-                  {messages.common.openTagMap}
-                </Link>
-              </div>
             </article>
 
             <article className="panel archive-filter-panel">
-              <div className="meta-label">{messages.blogArchive.filterKicker}</div>
-              <h2 className="section-title">{messages.blogArchive.filterTitle}</h2>
-              <p className="section-copy">{messages.blogArchive.filterCopy}</p>
+              {hasText(messages.blogArchive.filterKicker) ? <div className="meta-label">{messages.blogArchive.filterKicker}</div> : null}
+              {hasText(messages.blogArchive.filterTitle) ? <h2 className="section-title">{messages.blogArchive.filterTitle}</h2> : null}
+              {hasText(messages.blogArchive.filterCopy) ? <p className="section-copy">{messages.blogArchive.filterCopy}</p> : null}
               <div className="archive-filter-list">
                 <Link className={`tag-chip archive-filter-chip${activeTag ? "" : " archive-filter-chip--active"}`} href={getLocalizedRoute(normalizedLocale, "/blog")}>
                   <span>{messages.blogArchive.allEssays}</span>
@@ -199,20 +182,6 @@ export function BlogIndexPageContent({
                 <p className="archive-filter-note">{createMissingTagCopy(normalizedLocale, requestedSlug, messages.blogArchive.filterMissing)}</p>
               ) : null}
             </article>
-
-            <article className="panel archive-signal-band">
-              <div className="meta-label">{messages.blogArchive.quickSignalsKicker}</div>
-              <h2 className="section-title">{messages.blogArchive.quickSignalsTitle}</h2>
-              <div className="archive-signal-list">
-                {quickSignals.map((tagItem) => (
-                  <Link className="archive-signal-link" href={getTagArchivePath(normalizedLocale, tagItem.slug)} key={tagItem.slug}>
-                    <span className="archive-signal-name">{tagItem.name}</span>
-                    <span className="archive-signal-meta">{tagItem.articleCountLabel}</span>
-                    <span className="archive-signal-lead">{tagItem.leadPost?.title ?? messages.common.moreComing}</span>
-                  </Link>
-                ))}
-              </div>
-            </article>
           </div>
         </aside>
 
@@ -221,16 +190,15 @@ export function BlogIndexPageContent({
             <section className="panel archive-filter-summary">
               <div className="archive-summary-heading">
                 <div>
-                  <div className="meta-label">{messages.blogArchive.filteredSummaryKicker}</div>
+                  {hasText(messages.blogArchive.filteredSummaryKicker) ? <div className="meta-label">{messages.blogArchive.filteredSummaryKicker}</div> : null}
                   <h2 className="section-title">{activeTag.name}</h2>
                 </div>
                 <span className="meta-pill">{formatArticleCount(normalizedLocale, filteredPosts.length, "visible essay")}</span>
               </div>
-              <p className="section-copy archive-filter-summary-copy">{messages.blogArchive.filteredSummaryCopy}</p>
+              {hasText(messages.blogArchive.filteredSummaryCopy) ? (
+                <p className="section-copy archive-filter-summary-copy">{messages.blogArchive.filteredSummaryCopy}</p>
+              ) : null}
               <div className="hero-actions section" style={{ marginTop: 18 }}>
-                <Link className="button-link button-link--primary" href={getTagArchivePath(normalizedLocale, activeTag.slug)}>
-                  {messages.common.openTagArchive}
-                </Link>
                 <Link className="button-link button-link--secondary" href={getLocalizedRoute(normalizedLocale, "/blog")}>
                   {messages.common.clearFilter}
                 </Link>
@@ -240,7 +208,7 @@ export function BlogIndexPageContent({
 
           <SectionHeading
             kicker={activeTag ? messages.blogArchive.filteredFeaturedKicker : messages.blogArchive.featuredKicker}
-            title={activeTag ? createFilteredFeaturedTitle(normalizedLocale, activeTag.name) : messages.blogArchive.featuredTitle}
+            title={activeTag ? messages.blogArchive.filteredFeaturedTitle : messages.blogArchive.featuredTitle}
             copy={activeTag ? messages.blogArchive.filteredFeaturedCopy : messages.blogArchive.featuredCopy}
           />
           <div className={featuredGridClassName}>
@@ -253,9 +221,13 @@ export function BlogIndexPageContent({
             <section className="archive-stack section">
               <div className="archive-stack-heading">
                 <div>
-                  <div className="meta-label">{messages.blogArchive.stackKicker}</div>
-                  <h2 className="section-title">{activeTag ? createFilteredStackTitle(normalizedLocale, activeTag.name) : messages.blogArchive.stackTitle}</h2>
-                  <p className="section-copy">{activeTag ? messages.blogArchive.filteredStackCopy : messages.blogArchive.stackCopy}</p>
+                  {hasText(messages.blogArchive.stackKicker) ? <div className="meta-label">{messages.blogArchive.stackKicker}</div> : null}
+                  {hasText(activeTag ? messages.blogArchive.filteredStackTitle : messages.blogArchive.stackTitle) ? (
+                    <h2 className="section-title">{activeTag ? messages.blogArchive.filteredStackTitle : messages.blogArchive.stackTitle}</h2>
+                  ) : null}
+                  {hasText(activeTag ? messages.blogArchive.filteredStackCopy : messages.blogArchive.stackCopy) ? (
+                    <p className="section-copy">{activeTag ? messages.blogArchive.filteredStackCopy : messages.blogArchive.stackCopy}</p>
+                  ) : null}
                 </div>
                 <span className="meta-pill">{formatArticleCount(normalizedLocale, archive.length, "more post")}</span>
               </div>

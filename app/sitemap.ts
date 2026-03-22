@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
-import { getAllPosts, getAllTagSlugs } from "@/lib/content";
+import { getAllPosts } from "@/lib/content";
 import { buildSitemapEntries } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return buildSitemapEntries(getAllPosts(), getAllTagSlugs()).map((entry) => ({
+  return buildSitemapEntries(getAllPosts()).map((entry) => ({
     url: entry.url,
     lastModified: entry.lastModified ? new Date(entry.lastModified) : undefined
   }));

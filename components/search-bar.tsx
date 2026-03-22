@@ -5,6 +5,10 @@ import { DEFAULT_LOCALE, getMessages, normalizeLocale } from "@/lib/i18n";
 import { getLocalizedRoute } from "@/lib/site";
 import { SEARCH_OPEN_EVENT } from "@/lib/ui-state";
 
+function hasText(value?: string) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 export function SearchBar({ locale = DEFAULT_LOCALE }: { locale?: string }) {
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
@@ -12,9 +16,9 @@ export function SearchBar({ locale = DEFAULT_LOCALE }: { locale?: string }) {
 
   return (
     <div className="search-panel">
-      <div className="section-kicker">{search.sectionKicker}</div>
-      <h2 className="section-title">{search.title}</h2>
-      <p className="search-copy">{search.copy}</p>
+      {hasText(search.sectionKicker) ? <div className="section-kicker">{search.sectionKicker}</div> : null}
+      {hasText(search.title) ? <h2 className="section-title">{search.title}</h2> : null}
+      {hasText(search.copy) ? <p className="search-copy">{search.copy}</p> : null}
       <div className="section" style={{ marginTop: 18 }}>
         <button
           aria-label={search.inputLabel}

@@ -4,6 +4,10 @@ import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, 
 import { getLocalizedRoute } from "@/lib/site";
 import { getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 
+function hasText(value?: string) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 export function getAboutPageMetadata(locale = DEFAULT_LOCALE): Metadata {
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
@@ -48,15 +52,15 @@ export function AboutPageContent({ locale = DEFAULT_LOCALE }: { locale?: string 
   return (
     <>
       <section className="section-band">
-        <div className="section-kicker">{messages.about.heroKicker}</div>
-        <h1 className="page-title">{messages.about.title}</h1>
-        <p className="page-copy">{messages.about.intro}</p>
+        {hasText(messages.about.heroKicker) ? <div className="section-kicker">{messages.about.heroKicker}</div> : null}
+        {hasText(messages.about.title) ? <h1 className="page-title">{messages.about.title}</h1> : null}
+        {hasText(messages.about.intro) ? <p className="page-copy">{messages.about.intro}</p> : null}
       </section>
 
       <section className="about-grid section">
         <article className="panel about-panel">
-          <div className="section-kicker">{messages.about.profileKicker}</div>
-          <h2 className="section-title">{messages.about.profileTitle}</h2>
+          {hasText(messages.about.profileKicker) ? <div className="section-kicker">{messages.about.profileKicker}</div> : null}
+          {hasText(messages.about.profileTitle) ? <h2 className="section-title">{messages.about.profileTitle}</h2> : null}
           {messages.about.profileParagraphs.map((paragraph) => (
             <p className="about-copy" key={paragraph}>
               {paragraph}
@@ -65,7 +69,7 @@ export function AboutPageContent({ locale = DEFAULT_LOCALE }: { locale?: string 
         </article>
         <div className="post-list">
           <article className="panel about-panel">
-            <div className="section-kicker">{messages.about.principlesKicker}</div>
+            {hasText(messages.about.principlesKicker) ? <div className="section-kicker">{messages.about.principlesKicker}</div> : null}
             {messages.about.principles.map((principle) => (
               <p className="metric-detail" key={principle}>
                 {principle}
@@ -73,14 +77,16 @@ export function AboutPageContent({ locale = DEFAULT_LOCALE }: { locale?: string 
             ))}
           </article>
           <article className="panel about-panel">
-            <div className="section-kicker">{messages.about.nextKicker}</div>
+            {hasText(messages.about.nextKicker) ? <div className="section-kicker">{messages.about.nextKicker}</div> : null}
             <div className="post-list">
               <Link className="button-link button-link--primary" href={getLocalizedRoute(normalizedLocale, "/blog")}>
                 {messages.about.nextPrimary}
               </Link>
-              <Link className="button-link button-link--secondary" href={getLocalizedRoute(normalizedLocale, "/tags")}>
-                {messages.about.nextSecondary}
-              </Link>
+              {hasText(messages.about.nextSecondary) ? (
+                <Link className="button-link button-link--secondary" href={getLocalizedRoute(normalizedLocale, "/")}>
+                  {messages.about.nextSecondary}
+                </Link>
+              ) : null}
             </div>
           </article>
         </div>

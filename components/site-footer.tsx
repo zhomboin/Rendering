@@ -17,9 +17,6 @@ export function SiteFooter({ locale = DEFAULT_LOCALE }: { locale?: string }) {
           <Link className="nav-link" href={getLocalizedRoute(normalizedLocale, "/about")}>
             {messages.footer.about}
           </Link>
-          <Link className="nav-link" href={getLocalizedRoute(normalizedLocale, "/tags")}>
-            {messages.footer.tags}
-          </Link>
         </div>
       </div>
     </footer>

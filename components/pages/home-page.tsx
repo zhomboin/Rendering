@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { HeroPanel } from "@/components/hero-panel";
-import { MetricPanel } from "@/components/metric-panel";
 import { PostCard } from "@/components/post-card";
 import { SearchBar } from "@/components/search-bar";
 import { SectionHeading } from "@/components/section-heading";
-import { getAllPosts, getFeaturedPosts, getRecentPosts, getTagSummaries } from "@/lib/content";
+import { getFeaturedPosts, getRecentPosts, getTagSummaries } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
-import { getSiteMetrics } from "@/lib/site";
+import { getBlogTagFilterPath } from "@/lib/site";
 import { getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 
 export function getHomePageMetadata(locale = DEFAULT_LOCALE): Metadata {
@@ -51,22 +51,12 @@ export function HomePageContent({ locale = DEFAULT_LOCALE }: { locale?: string }
   const messages = getMessages(normalizedLocale);
   const featuredPosts = getFeaturedPosts();
   const recentPosts = getRecentPosts(3);
-  const allPosts = getAllPosts();
   const tags = getTagSummaries();
-  const metrics = getSiteMetrics(normalizedLocale, {
-    postCount: allPosts.length,
-    tagCount: tags.length
-  });
 
   return (
     <>
-      <section className="hero-grid home-hero-grid">
+      <section className="hero-grid home-hero-grid home-hero-grid--solo">
         <HeroPanel locale={normalizedLocale} />
-        <div className="metric-grid home-stagger home-stagger--metrics">
-          {metrics.map((metric) => (
-            <MetricPanel key={metric.label} detail={metric.detail} label={metric.label} value={metric.value} />
-          ))}
-        </div>
       </section>
 
       <section className="section home-section home-section--featured">
@@ -105,15 +95,11 @@ export function HomePageContent({ locale = DEFAULT_LOCALE }: { locale?: string }
             />
             <div className="tag-grid home-stagger home-stagger--tags">
               {tags.map((tag) => (
-                <article className="panel tag-card" id={tag.slug} key={tag.slug}>
+                <Link className="panel tag-card tag-card--link" href={getBlogTagFilterPath(normalizedLocale, tag.slug)} id={tag.slug} key={tag.slug}>
                   <div className="meta-label">{messages.common.topic}</div>
                   <h3 className="card-title">{tag.name}</h3>
-                  <p className="metric-detail">
-                    {normalizedLocale === "zh"
-                      ? `${tag.count} ${messages.home.tags.cardCountSuffix}`
-                      : `${tag.count} ${messages.home.tags.cardCountSuffix}`}
-                  </p>
-                </article>
+                  <p className="metric-detail">{`${tag.count} ${messages.home.tags.cardCountSuffix}`}</p>
+                </Link>
               ))}
             </div>
           </div>
