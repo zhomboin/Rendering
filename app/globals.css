@@ -1177,6 +1177,10 @@ main {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(255, 220, 176, 0.9));
 }
 
+.archive-hero-band .page-copy {
+  max-width: none;
+}
+
 .tag-map-band {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(215, 242, 255, 0.92));
 }

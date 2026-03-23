@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PostCard } from "@/components/post-card";
 import { SearchBar } from "@/components/search-bar";
-import { SectionHeading } from "@/components/section-heading";
 import { splitArchivePosts } from "@/lib/archive-layout";
 import { getAllPosts, getPostsByTag, getTagSummaries } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
@@ -151,26 +150,7 @@ export function BlogIndexPageContent({
           <div className="archive-rail-stack">
             <SearchBar locale={normalizedLocale} />
 
-            <article className="panel archive-guide">
-              {hasText(messages.blogArchive.guideKicker) ? <div className="meta-label">{messages.blogArchive.guideKicker}</div> : null}
-              {hasText(archiveCopy.guide.title) ? <h2 className="section-title">{archiveCopy.guide.title}</h2> : null}
-              {hasText(archiveCopy.guide.copy) ? <p className="section-copy">{archiveCopy.guide.copy}</p> : null}
-              <div className="archive-stats">
-                <div className="archive-stat">
-                  <span className="archive-stat-value">{filteredPosts.length}</span>
-                  <span className="archive-stat-label">{activeTag ? messages.blogArchive.visibleEssays : messages.blogArchive.publicEssays}</span>
-                </div>
-                <div className="archive-stat">
-                  <span className="archive-stat-value">{tags.length}</span>
-                  <span className="archive-stat-label">{messages.blogArchive.topicTags}</span>
-                </div>
-              </div>
-            </article>
-
             <article className="panel archive-filter-panel">
-              {hasText(messages.blogArchive.filterKicker) ? <div className="meta-label">{messages.blogArchive.filterKicker}</div> : null}
-              {hasText(archiveCopy.filter.title) ? <h2 className="section-title">{archiveCopy.filter.title}</h2> : null}
-              {hasText(archiveCopy.filter.copy) ? <p className="section-copy">{archiveCopy.filter.copy}</p> : null}
               <div className="archive-filter-list">
                 <Link className={`tag-chip archive-filter-chip${activeTag ? "" : " archive-filter-chip--active"}`} href={getLocalizedRoute(normalizedLocale, "/blog")}>
                   <span>{messages.blogArchive.allEssays}</span>
@@ -215,11 +195,6 @@ export function BlogIndexPageContent({
             </section>
           ) : null}
 
-          <SectionHeading
-            kicker={activeTag ? messages.blogArchive.filteredFeaturedKicker : messages.blogArchive.featuredKicker}
-            title={archiveCopy.featured.title}
-            copy={archiveCopy.featured.copy}
-          />
           <div className={featuredGridClassName}>
             {featured.map((post, index) => (
               <PostCard key={post.slug} locale={normalizedLocale} post={post} spotlight={index === 0} variant="featured" />
@@ -228,14 +203,6 @@ export function BlogIndexPageContent({
 
           {archive.length ? (
             <section className="archive-stack section">
-              <div className="archive-stack-heading">
-                <div>
-                  {hasText(messages.blogArchive.stackKicker) ? <div className="meta-label">{messages.blogArchive.stackKicker}</div> : null}
-                  {hasText(archiveCopy.stack.title) ? <h2 className="section-title">{archiveCopy.stack.title}</h2> : null}
-                  {hasText(archiveCopy.stack.copy) ? <p className="section-copy">{archiveCopy.stack.copy}</p> : null}
-                </div>
-                <span className="meta-pill">{formatArticleCount(normalizedLocale, archive.length, "more post")}</span>
-              </div>
               <div className="post-list post-list--archive">
                 {archive.map((post) => (
                   <PostCard key={post.slug} locale={normalizedLocale} post={post} variant="archive" />
