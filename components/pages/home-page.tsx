@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { HeroPanel } from "@/components/hero-panel";
+import { HomeTagExplorer } from "@/components/home-tag-explorer";
 import { PostCard } from "@/components/post-card";
 import { SearchBar } from "@/components/search-bar";
 import { SectionHeading } from "@/components/section-heading";
 import { getAllPosts, getTagSummaries } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
 import { buildHomePageCopy } from "@/lib/page-copy";
-import { getBlogTagFilterPath } from "@/lib/site";
 import { getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 
 export function getHomePageMetadata(locale = DEFAULT_LOCALE): Metadata {
@@ -63,11 +62,7 @@ export function HomePageContent({ locale = DEFAULT_LOCALE }: { locale?: string }
       </section>
 
       <section className="section home-section home-section--featured">
-        <SectionHeading
-          kicker={messages.home.featured.kicker}
-          title={homeCopy.featured.title}
-          copy={homeCopy.featured.copy}
-        />
+        <SectionHeading kicker={messages.home.featured.kicker} title={homeCopy.featured.title} copy={homeCopy.featured.copy} />
         <div className="post-list home-stagger home-stagger--cards">
           {featuredPosts.map((post) => (
             <PostCard key={post.slug} locale={normalizedLocale} post={post} />
@@ -77,11 +72,7 @@ export function HomePageContent({ locale = DEFAULT_LOCALE }: { locale?: string }
 
       <section className="content-grid section home-section home-section--secondary">
         <div>
-          <SectionHeading
-            kicker={messages.home.latest.kicker}
-            title={homeCopy.latest.title}
-            copy={homeCopy.latest.copy}
-          />
+          <SectionHeading kicker={messages.home.latest.kicker} title={homeCopy.latest.title} copy={homeCopy.latest.copy} />
           <div className="post-list home-stagger home-stagger--cards">
             {recentPosts.map((post) => (
               <PostCard key={post.slug} locale={normalizedLocale} post={post} />
@@ -91,20 +82,8 @@ export function HomePageContent({ locale = DEFAULT_LOCALE }: { locale?: string }
         <div className="home-side-stack">
           <SearchBar locale={normalizedLocale} />
           <div className="section-band section home-tag-band">
-            <SectionHeading
-              kicker={messages.home.tags.kicker}
-              title={homeCopy.tags.title}
-              copy={homeCopy.tags.copy}
-            />
-            <div className="tag-grid home-stagger home-stagger--tags">
-              {tags.map((tag) => (
-                <Link className="panel tag-card tag-card--link" href={getBlogTagFilterPath(normalizedLocale, tag.slug)} id={tag.slug} key={tag.slug}>
-                  <div className="meta-label">{messages.common.topic}</div>
-                  <h3 className="card-title">{tag.name}</h3>
-                  <p className="metric-detail">{`${tag.count} ${homeCopy.tags.cardCountSuffix}`}</p>
-                </Link>
-              ))}
-            </div>
+            <SectionHeading kicker={messages.home.tags.kicker} title={homeCopy.tags.title} copy={homeCopy.tags.copy} />
+            <HomeTagExplorer locale={normalizedLocale} tags={tags} topicLabel={messages.common.topic} countSuffix={homeCopy.tags.cardCountSuffix} />
           </div>
         </div>
       </section>

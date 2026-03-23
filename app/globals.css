@@ -1545,6 +1545,29 @@ main {
   gap: 24px;
 }
 
+.home-tag-explorer {
+  display: grid;
+  gap: 18px;
+}
+
+.home-tag-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.home-tag-toggle {
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.home-tag-toggle-icon {
+  width: 24px;
+  height: 24px;
+}
+
 .home-stagger > *,
 .home-section .section-heading,
 .home-side-stack .search-panel,
