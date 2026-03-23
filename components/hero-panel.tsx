@@ -2,18 +2,32 @@ import Link from "next/link";
 import { DEFAULT_LOCALE, getMessages, normalizeLocale } from "@/lib/i18n";
 import { getLocalizedRoute } from "@/lib/site";
 
-export function HeroPanel({ locale = DEFAULT_LOCALE }: { locale?: string }) {
+type HeroContent = {
+  kicker?: string;
+  title?: string;
+  copy?: string;
+  badges?: string[];
+  primaryAction?: string;
+  secondaryAction?: string;
+};
+
+export function HeroPanel({ locale = DEFAULT_LOCALE, hero }: { locale?: string; hero?: HeroContent }) {
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
-  const hero = messages.home.hero;
+  const heroMessages = messages.home.hero;
+  const resolvedHero = {
+    ...heroMessages,
+    ...hero,
+    badges: hero?.badges ?? heroMessages.badges
+  };
 
   return (
     <section className="panel hero-panel">
-      <div className="hero-kicker">{hero.kicker}</div>
-      <h1 className="hero-title">{hero.title}</h1>
-      <p className="hero-copy">{hero.copy}</p>
+      <div className="hero-kicker">{resolvedHero.kicker}</div>
+      <h1 className="hero-title">{resolvedHero.title}</h1>
+      <p className="hero-copy">{resolvedHero.copy}</p>
       <div className="hero-badges">
-        {hero.badges.map((badge) => (
+        {(resolvedHero.badges ?? []).filter(Boolean).map((badge) => (
           <span className="hero-badge" key={badge}>
             {badge}
           </span>
@@ -21,10 +35,10 @@ export function HeroPanel({ locale = DEFAULT_LOCALE }: { locale?: string }) {
       </div>
       <div className="hero-actions section">
         <Link className="button-link button-link--primary" href={getLocalizedRoute(normalizedLocale, "/blog")}>
-          {hero.primaryAction}
+          {resolvedHero.primaryAction}
         </Link>
         <Link className="button-link button-link--secondary" href={getLocalizedRoute(normalizedLocale, "/about")}>
-          {hero.secondaryAction}
+          {resolvedHero.secondaryAction}
         </Link>
       </div>
     </section>

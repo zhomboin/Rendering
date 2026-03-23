@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { splitArchivePosts } from "@/lib/archive-layout";
 import { getAllPosts, getPostsByTag, getTagSummaries } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
+import { buildBlogArchiveCopy } from "@/lib/page-copy";
 import { formatArticleCount, getLocalizedRoute } from "@/lib/site";
 import { getSiteSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 import { buildTagFilterLinks, resolveTagFilter } from "@/lib/tag-discovery";
@@ -26,7 +27,7 @@ function createTagDescription(locale: string, name: string, count: number) {
 
 function createMissingTagCopy(locale: string, requestedSlug: string, fallback: string) {
   return normalizeLocale(locale) === "zh"
-    ? `标签 “${requestedSlug}” 当前还没有公开内容，因此仍然展示完整文章归档。`
+    ? `标签“${requestedSlug}”当前还没有公开内容，因此仍然展示完整文章归档。`
     : fallback;
 }
 
@@ -121,6 +122,14 @@ export function BlogIndexPageContent({
   const { activeTag, hasRequestedTag, requestedSlug } = resolveTagFilter(searchParams.tag, tags);
   const filteredPosts = activeTag ? getPostsByTag(activeTag.slug) : allPosts;
   const { featured, archive } = splitArchivePosts(filteredPosts, activeTag ? 1 : 2);
+  const archiveCopy = buildBlogArchiveCopy(normalizedLocale, {
+    allPosts,
+    visiblePosts: filteredPosts,
+    tags,
+    activeTag,
+    featuredCount: featured.length,
+    archiveCount: archive.length
+  });
   const filterLinks = buildTagFilterLinks(tags, activeTag?.slug ?? "").map((tagLink) => ({
     ...tagLink,
     href: getLocalizedPath(tagLink.href, normalizedLocale)
@@ -133,8 +142,8 @@ export function BlogIndexPageContent({
     <>
       <section className="section-band archive-hero-band">
         {hasText(messages.blogArchive.heroKicker) ? <div className="section-kicker">{messages.blogArchive.heroKicker}</div> : null}
-        {hasText(messages.blogArchive.heroTitle) ? <h1 className="page-title">{messages.blogArchive.heroTitle}</h1> : null}
-        {hasText(messages.blogArchive.heroCopy) ? <p className="page-copy">{messages.blogArchive.heroCopy}</p> : null}
+        {hasText(archiveCopy.hero.title) ? <h1 className="page-title">{archiveCopy.hero.title}</h1> : null}
+        {hasText(archiveCopy.hero.copy) ? <p className="page-copy">{archiveCopy.hero.copy}</p> : null}
       </section>
 
       <section className="section archive-layout-grid">
@@ -144,8 +153,8 @@ export function BlogIndexPageContent({
 
             <article className="panel archive-guide">
               {hasText(messages.blogArchive.guideKicker) ? <div className="meta-label">{messages.blogArchive.guideKicker}</div> : null}
-              {hasText(messages.blogArchive.guideTitle) ? <h2 className="section-title">{messages.blogArchive.guideTitle}</h2> : null}
-              {hasText(messages.blogArchive.guideCopy) ? <p className="section-copy">{messages.blogArchive.guideCopy}</p> : null}
+              {hasText(archiveCopy.guide.title) ? <h2 className="section-title">{archiveCopy.guide.title}</h2> : null}
+              {hasText(archiveCopy.guide.copy) ? <p className="section-copy">{archiveCopy.guide.copy}</p> : null}
               <div className="archive-stats">
                 <div className="archive-stat">
                   <span className="archive-stat-value">{filteredPosts.length}</span>
@@ -160,8 +169,8 @@ export function BlogIndexPageContent({
 
             <article className="panel archive-filter-panel">
               {hasText(messages.blogArchive.filterKicker) ? <div className="meta-label">{messages.blogArchive.filterKicker}</div> : null}
-              {hasText(messages.blogArchive.filterTitle) ? <h2 className="section-title">{messages.blogArchive.filterTitle}</h2> : null}
-              {hasText(messages.blogArchive.filterCopy) ? <p className="section-copy">{messages.blogArchive.filterCopy}</p> : null}
+              {hasText(archiveCopy.filter.title) ? <h2 className="section-title">{archiveCopy.filter.title}</h2> : null}
+              {hasText(archiveCopy.filter.copy) ? <p className="section-copy">{archiveCopy.filter.copy}</p> : null}
               <div className="archive-filter-list">
                 <Link className={`tag-chip archive-filter-chip${activeTag ? "" : " archive-filter-chip--active"}`} href={getLocalizedRoute(normalizedLocale, "/blog")}>
                   <span>{messages.blogArchive.allEssays}</span>
@@ -195,8 +204,8 @@ export function BlogIndexPageContent({
                 </div>
                 <span className="meta-pill">{formatArticleCount(normalizedLocale, filteredPosts.length, "visible essay")}</span>
               </div>
-              {hasText(messages.blogArchive.filteredSummaryCopy) ? (
-                <p className="section-copy archive-filter-summary-copy">{messages.blogArchive.filteredSummaryCopy}</p>
+              {hasText(archiveCopy.filteredSummary.copy) ? (
+                <p className="section-copy archive-filter-summary-copy">{archiveCopy.filteredSummary.copy}</p>
               ) : null}
               <div className="hero-actions section" style={{ marginTop: 18 }}>
                 <Link className="button-link button-link--secondary" href={getLocalizedRoute(normalizedLocale, "/blog")}>
@@ -208,8 +217,8 @@ export function BlogIndexPageContent({
 
           <SectionHeading
             kicker={activeTag ? messages.blogArchive.filteredFeaturedKicker : messages.blogArchive.featuredKicker}
-            title={activeTag ? messages.blogArchive.filteredFeaturedTitle : messages.blogArchive.featuredTitle}
-            copy={activeTag ? messages.blogArchive.filteredFeaturedCopy : messages.blogArchive.featuredCopy}
+            title={archiveCopy.featured.title}
+            copy={archiveCopy.featured.copy}
           />
           <div className={featuredGridClassName}>
             {featured.map((post, index) => (
@@ -222,12 +231,8 @@ export function BlogIndexPageContent({
               <div className="archive-stack-heading">
                 <div>
                   {hasText(messages.blogArchive.stackKicker) ? <div className="meta-label">{messages.blogArchive.stackKicker}</div> : null}
-                  {hasText(activeTag ? messages.blogArchive.filteredStackTitle : messages.blogArchive.stackTitle) ? (
-                    <h2 className="section-title">{activeTag ? messages.blogArchive.filteredStackTitle : messages.blogArchive.stackTitle}</h2>
-                  ) : null}
-                  {hasText(activeTag ? messages.blogArchive.filteredStackCopy : messages.blogArchive.stackCopy) ? (
-                    <p className="section-copy">{activeTag ? messages.blogArchive.filteredStackCopy : messages.blogArchive.stackCopy}</p>
-                  ) : null}
+                  {hasText(archiveCopy.stack.title) ? <h2 className="section-title">{archiveCopy.stack.title}</h2> : null}
+                  {hasText(archiveCopy.stack.copy) ? <p className="section-copy">{archiveCopy.stack.copy}</p> : null}
                 </div>
                 <span className="meta-pill">{formatArticleCount(normalizedLocale, archive.length, "more post")}</span>
               </div>
