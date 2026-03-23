@@ -2,30 +2,36 @@
 
 [中文](./README.md)
 
-`Rendering` is a personal technical blog built with `Next.js 15`. The current phase already includes a runnable public frontend, a local `MDX` content source, tag archive and filtering flows, Pagefind-powered search, and a Chinese-first plus English-mirrored site UI structure.
+`Rendering` is a personal technical blog built with `Next.js 15`. 
 
-`Rendering` is a personal publishing site focused on editorial personality, long-form reading comfort, and image-friendly technical writing.
+Its current shape is: Chinese-default routes, English mirrored UI under `/en`, local `MDX` authoring, blog-page tag filtering, Pagefind search, reading-progress UX, article media modules, and static distribution / SEO foundations including RSS, manifest, JSON-LD, and dynamic OG images.
 
-## Current Product Direction
+## Current Status
 
-- a playful editorial blog with claymorphism-inspired surfaces
-- a light-first theme with dark-mode support
-- strong text, code, and image reading comfort
-- a local MDX workflow
-- static search with extensible SEO foundations
-- Chinese default routes with English mirrored UI routes under `/en`
+- Current personal-blog implementation phase: complete
+- Current repository role: public personal blog frontend
+- Current publishing workflow: `Git + MDX + automated build/deploy`
 
 ## Current Features
 
-- Home, blog archive, article detail, tags, tag archive, and about pages
-- local content from `content/posts/*.mdx`
-- frontmatter-driven post metadata
-- draft filtering, tag aggregation, and previous/next article navigation
-- `figure / caption / gallery` article media modules with lightbox support
-- reading-progress tracking on article pages
-- global Pagefind search modal
-- `sitemap.xml`, `robots.txt`, and JSON-LD
-- automatic search-index generation after build
+- Home, blog archive, article detail, and about pages
+- Chinese default routes with English mirrored UI under `/en`
+- Tag filtering inside the blog archive via `/blog?tag=...`
+- Local content repository at `content/posts/*.mdx`
+- Frontmatter-driven title, description, date, tags, and draft state
+- Previous / next article navigation
+- TOC, reading progress, mixed media, and `figure / caption / gallery / lightbox`
+- Light / dark theme switching
+- Global Pagefind search
+- `sitemap.xml`, `robots.txt`, `feed.xml`, and `manifest.webmanifest`
+- Site-level and article-level JSON-LD plus dynamic OG images
+- GitHub Actions CI
+
+## Route Model
+
+- Chinese: `/`, `/blog`, `/blog/[slug]`, `/about`
+- English: `/en`, `/en/blog`, `/en/blog/[slug]`, `/en/about`
+- Tags no longer have standalone pages; they are handled through blog filtering only
 
 ## Tech Stack
 
@@ -50,21 +56,32 @@ npm run build
 npm run check
 ```
 
-## Out Of Scope For The Current Phase
+## Publishing Workflow
 
-- login
-- author authentication
-- admin tooling
-- database-backed content editing
-- comments systems
-- multi-author publishing
-- analytics dashboards
+Create a post with:
 
-Those capabilities are reserved for a future CMS stage rather than being front-loaded now.
+```bash
+npm run create-post -- <slug> [tag1,tag2]
+```
 
-## Next Priorities
+Then:
 
-- publishing baseline closure and CI
-- author workflow and migration template improvements
-- feed and manifest support
-- curated migration of 3-5 original articles from the user's CSDN blog
+1. Fill frontmatter and body in `content/posts/*.mdx`
+2. Preview locally with `npm run dev`
+3. Run `npm run check`
+4. Set `draft` to `false`
+5. Commit and push to `main`
+
+## Still Required Before Public Launch
+
+These are not implementation gaps in the current phase; they are operational release prerequisites:
+
+- final domain and hosting
+- final author identity and brand copy
+- final public about-page content
+- final review of the first public article batch
+
+See also:
+- [docs/site-launch-checklist-and-publishing-sop.zh-CN.md](/D:/Code/Project/Rendering/Rendering/docs/site-launch-checklist-and-publishing-sop.zh-CN.md)
+- [docs/PRD.md](/D:/Code/Project/Rendering/Rendering/docs/PRD.md)
+- [docs/development-plan.md](/D:/Code/Project/Rendering/Rendering/docs/development-plan.md)

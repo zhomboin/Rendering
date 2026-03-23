@@ -1,84 +1,92 @@
 # Rendering Development Plan
 
-Date: 2026-03-21
+Date: 2026-03-23
 Project: Rendering
-Document Status: Active
-Document Role: Single implementation plan for the current personal-blog phase
+Document Status: Implemented
+Document Role: Final implementation record for the completed personal-blog phase
 
-## Plan Goal
+## Plan Result
 
-Deliver `Rendering` as a polished personal technical blog with a stable release baseline, strong reading experience, repeatable local MDX workflow, lightweight distribution features, and room for future CMS expansion without implementing CMS features now.
+The current personal-blog implementation plan has been completed.
 
-## Current Status
+`Rendering` now ships as a polished personal technical blog with:
 
-The repository already contains:
+- a stable release baseline
+- a repeatable local MDX workflow
+- strong article reading UX
+- lightweight distribution infrastructure
+- room for future CMS expansion without introducing CMS complexity now
 
-- public homepage, archive, article, tags, and about routes
-- Chinese-first routing and English mirrored site UI routes
-- local MDX content repository
-- tag archive and tag filtering
-- Pagefind search integration
-- sitemap, robots, and JSON-LD
-- playful claymorphism visual system
-- article media modules, reading progress, and richer article UX
-
-## Current Workstreams
+## Completed Workstreams
 
 ### 1. Publishing Baseline Closure
 
-Tighten the current release baseline by:
+Completed:
 
-- syncing docs with repo reality
-- adding explicit local verification commands
-- adding CI for core checks
-- improving missing-page handling
-- tightening accessibility on the most important interaction surfaces
+- documentation baseline aligned with repository reality
+- explicit local verification commands
+- GitHub Actions CI
+- missing-page handling
+- core interaction accessibility improvements
 
 ### 2. Author Workflow And Content Discipline
 
-Strengthen the content layer by:
+Completed:
 
-- clarifying frontmatter expectations
-- adding authoring templates and draft helpers
-- validating content more reliably
-- keeping repository helpers as the only public-content source of truth
+- frontmatter contract
+- post creation script and template flow
+- content verification script
+- repository helpers as the single public-content source of truth
 
 ### 3. Distribution Foundations
 
-Extend outward-facing publishing support with:
+Completed:
 
-- feed generation
-- manifest support
-- stronger share and metadata foundations where useful
+- RSS feed generation
+- web manifest support
+- sitemap, robots, and JSON-LD
+- dynamic OG image route
 
 ### 4. Curated Content Migration
 
-Grow the archive by migrating a first curated batch of original CSDN articles into native Rendering content, with rewriting and restructuring rather than mechanical copying.
+Completed for the initial batch:
+
+- selected original CSDN articles migrated into native site content
+- current archive expanded with database / systems / server-oriented writing
 
 ### 5. Future CMS Preparation
 
-Keep the architecture ready for a later CMS phase by:
+Completed at the architectural level:
 
-- maintaining clean repository boundaries
-- avoiding direct route/file parsing coupling
-- keeping current UI components reusable
+- clean content-layer boundaries
+- no route-level MDX parsing duplication
+- reusable current UI components
+- no premature login / admin / database coupling
 
-Do not add login, admin, or database complexity just in case.
+## Current Remaining Work
 
-## Recommended Execution Order
+What remains is not core implementation work. It is release and operational work:
 
-1. publishing baseline closure
-2. author workflow and migration template
-3. distribution additions
-4. curated CSDN article migration
-5. re-evaluate the need for a future CMS phase
+1. finalize domain and hosting
+2. finalize public author / brand copy
+3. review the initial public article batch
+4. perform the production launch
+
+## Recommended Next Roadmap
+
+After launch, the next useful roadmap is:
+
+1. continue content growth
+2. refine site copy and public branding
+3. monitor search, feed, and share surfaces after real traffic
+4. only then evaluate whether a future CMS phase is justified
 
 ## Completion Definition
 
-The current phase is in a strong place when:
+The current phase is complete because:
 
 - verification and build workflows are reliable
-- product docs and implementation match
-- new posts are easier to create consistently
-- the archive has grown in both quality and technical depth
-- no current-phase requirement depends on CMS infrastructure
+- docs and implementation now match
+- new posts can be created and published consistently
+- the archive is already growing in technical depth
+- no current requirement depends on CMS infrastructure
