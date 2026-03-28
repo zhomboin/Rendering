@@ -1,0 +1,12 @@
+[Unit]
+Description=Rendering Automated Deployment Job
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=RENDERING_DEPLOY_ENV=/etc/rendering/rendering-deploy.env
+WorkingDirectory=/srv/rendering
+ExecStart=/srv/rendering/deploy/rendering-deploy.sh
+StandardOutput=journal
+StandardError=journal

@@ -1,0 +1,22 @@
+[Unit]
+Description=Rendering Next.js Web Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=rendering
+Group=rendering
+WorkingDirectory=/srv/rendering
+EnvironmentFile=/etc/rendering/rendering-web.env
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStartSec=120
+TimeoutStopSec=30
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
