@@ -1,0 +1,87 @@
+---
+title: "数据库 ACID 特性之 -- 持久性 Durability"
+description: "介绍数据库事务持久性的含义，以及 redo log、WAL 与检查点机制如何保证已提交数据不会丢失。"
+publishedAt: "2026-03-26"
+tags:
+  - mysql
+  - database
+  - systems
+draft: false
+---
+
+相关文章：[数据库 ACID 特性之 -- 原子性 Atomicity](/blog/database-atomicity-explained)、[数据库AICD特性之--隔离性 Isolation](/blog/mysql-isolation-levels-in-practice)、[数据库 ACID 特性之 -- 持久性 Durability](/blog/database-durability-explained)、[数据库AICD特性之--一致性 Consistency](/blog/database-consistency-explained)。
+
+> 参考文档：
+>  https://www.yisu.com/ask/17829991
+>  https://blog.51cto.com/u_16213440/10532275
+
+
+## 数据库 ACID 特性之 – 持久性 Durability
+
+数据持久化就是**把数据（如内存中的对象）保存到可永久保存的存储设备中（如磁盘）**。
+
+理论上来说，数据库提交事务就理应将数据落盘，但如果每一个写操作都要进行一次落盘操作，那么频繁的IO操作可能会导致数据库的性能下降。因此 mysql 中使用了[缓冲池](https://dev.mysql.com/doc/refman/8.4/en/innodb-buffer-pool.html)（buffer pool），缓冲池会缓存部分经常访问的数据和索引，这时就会先修改缓冲池中的数据，暂时不直接写到磁盘。
+
+那么问题来了，如果这时候宕机了，内存的数据不久丢失了吗？那么应该如何保证这部分数据不丢失。
+
+mysql 中则使用了 **redo log** 来保障数据不丢失，简单来讲就是**将数据的修改记录到 redo log 中，挂机后恢复时通过 redo log 来恢复数据，从而保证数据不丢失**。
+
+### buffer pool
+
+数据会先在buffer pool中缓存，缓存数据最终还是会写入到磁盘：
+
+- 那么写入磁盘时，哪些数据存入磁盘？
+- 以及数据什么时候存入磁盘？
+- 如何控制写哪些数据，或者说每次刷新到磁盘数据区域的大小是多少？
+
+**缓冲池**是主内存中的一个区域， InnoDB 按原样缓存表和索引数据 缓冲池允许频繁使用的数据 直接从内存访问，从而加快处理速度。
+当事务修改数据时，InnoDB 先在 Buffer Pool（内存缓存区）中修改对应数据页，此时该页与磁盘上的版本不一致，称为**脏页**。脏页就是写入磁盘时候要操作的区域。
+
+而脏页刷新到磁盘的时机，有以下几种情况：
+
+1. **后台线程定期刷新**：由 master thread（主线程）和 page cleaner thread（页清理线程）按固定频率（如每秒）扫描脏页并刷新。
+2. **检查点（Checkpoint）触发**：当脏页比例达到阈值（如 innodb_max_dirty_pages_pct）或日志序列号（LSN）超过一定范围时，触发批量刷新。
+3. **内存压力**：当 Buffer Pool 空间不足，需要淘汰冷数据页时，若该页为脏页，则先刷新到磁盘。
+4. **显式提交**：执行 `FLUSH TABLES WITH READ LOCK` 或 `CHECKPOINT` 命令时强制刷新。
+
+前边提到了脏页。数据页就是 InnoDB 的最小存储单位，默认大小为 16KB（可通过 `innodb_page_size` 参数调整）。无论读写操作，InnoDB 都是以完整的数据页为单位进行的，因此写入磁盘的最小单位也是 16KB。
+
+由于InnoDB是按照Page写数据到磁盘的，如果在Page写入到一半时系统宕机，就会导致目标数据文件中的对应页数据不完整。MySQL中引入了 [Doublewrite Buffer](https://dev.mysql.com/doc/refman/8.4/en/innodb-doublewrite-buffer.html) 来处理该问题。
+Doublewrite Buffer 通过两次写入确保数据页的完整性：
+
+- 第一次写入：将数据页先写入共享表空间的双写缓冲区；
+- 第二次写入：再将数据页写入其目标数据文件。
+
+只有当两次写入均成功，才认为数据页写入完成；若第一次写入成功但第二次失败，可从双写缓冲区中恢复完整数据页。
+此时如果出现了刷盘中途断电的情况：
+
+- 如果在写入 Double Write 区域期间：由于 Double Write 区域是连续的，因此 InnoDB 可以检测 Double Write 区域是否完整写入；
+- 如果是在 Double Write 区域复制到实际数据文件期间：此时由于 Double Write 区域数据是正确的，InnoDB 通过校验和确认目标数据文件损坏，因此在恢复数据时，直接将Double Write 区域复制到实际数据文件即可。
+
+buffer pool 中的数据写入磁盘的流程：
+
+1. 数据修改，在 Buffer Pool 中产生脏页
+2. 后台线程按策略选择脏页
+3. 脏页数据写入 Doublewrite Buffer
+4. 双写缓冲区数据写入目标数据文件
+5. 标记脏页为 clean
+
+### redo log
+
+**什么是 redo log**：redo Log 是一种物理日志，记录数据库的物理修改操作。由于它是物理日志，因此保证了 redo log 中的数据不丢失。在系统断电后，数据库重启时可以使用 redo log 来恢复数据。
+
+那么 redo log 也是将数据写入到磁盘，那么为什么使用 redo log 而不是直接写磁盘：因为**redo log 采用追加写入（Append-Only）模式，确保顺序 IO**，而数据直接写入磁盘，采用的是随机 IO，顺序 IO 的性能远高于随机 IO。
+
+对于 redo log，实际上也并不是立马就将数据写入到磁盘的。在MySQL中，处理缓存数据的缓存池外，还有一个日志缓冲区（[log buffer](https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log-buffer.html)），会先将 redo log 写入到 log buffer。
+
+对于 redo log 的刷盘机制， `innodb_flush_log_at_trx_commit` 变量控制如何写入日志缓冲区的内容 并刷新到磁盘，`innodb_flush_log_at_timeout` 变量控制日志刷新频率。`innodb_flush_log_at_trx_commit`取值：
+
+- `1`（默认）：事务提交时，日志缓冲区（Log Buffer）内容同步写入磁盘（fsync），确保持久性
+- `0`：每秒将日志缓冲区写入磁盘，但事务提交时不强制刷新，可能丢失 1 秒内数据
+- `2`：事务提交时将日志写入操作系统缓存（write），但不立即 fsync，依赖系统刷盘
+
+### checkpoint
+
+数据恢复需要使用到 redo log，那么如何确定数据要恢复到什么时候，如果要读取整个 redo log 来进行数据恢复，通常可能会导致恢复时间过长。
+这就需要用到检查点 checkpoint，checkpoint 会记录一个当前日志序列号（LSN），确保在该 LSN 之前的所有日志对应的脏页都已写入磁盘。因此，在数据恢复阶段，只需从最近一次检查点的 LSN 开始回放日志就可以。
+并且检查点完成后，对于检查点之前的 redo log 文件，就可以进行安全的删除，以此可以减少日志文件占用的空间。

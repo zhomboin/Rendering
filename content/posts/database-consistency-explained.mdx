@@ -1,0 +1,29 @@
+---
+title: "数据库AICD特性之--一致性 Consistency"
+description: "说明数据库事务一致性的含义，以及它如何依赖原子性、隔离性和持久性共同成立。"
+publishedAt: "2026-03-27"
+tags:
+  - mysql
+  - database
+  - systems
+draft: false
+---
+
+相关文章：[数据库 ACID 特性之 -- 原子性 Atomicity](/blog/database-atomicity-explained)、[数据库AICD特性之--隔离性 Isolation](/blog/mysql-isolation-levels-in-practice)、[数据库 ACID 特性之 -- 持久性 Durability](/blog/database-durability-explained)、[数据库AICD特性之--一致性 Consistency](/blog/database-consistency-explained)。
+
+## 数据库AICD特性之–一致性 Consistency
+
+一致性指数据库在事务执行前后，数据始终符合预设的完整性约束和业务规则。事务执行前数据是合法的，执行后也必须合法，不允许出现违反规则的中间状态。
+
+一致性并非独立实现，而是依赖 ACID 中其他特性的协同：
+
+1. [原子性（Atomicity）](/blog/database-atomicity-explained)的支撑
+事务的原子性确保操作 “全或无”，避免部分成功导致的数据不一致。
+例：转账事务若只完成扣款而未存款，原子性会回滚整个操作，防止金额丢失。
+2. [隔离性（Isolation）](/blog/mysql-isolation-levels-in-practice)的保障
+隔离性防止并发事务互相干扰，避免脏读、幻读等导致的中间状态被读取。
+例：若两个事务同时修改同一数据，隔离性确保每个事务看到的数据是一致的快照。
+3. [持久性（Durability）](/blog/database-durability-explained)的巩固
+持久性保证事务提交后数据永久存储，若系统崩溃后恢复，仍需通过日志（如 Redo Log）确保数据一致性。
+
+数据库在任何时候都保持一致状态——在每次提交或回滚之后，以及事务正在进行时。如果跨多个表更新相关数据，查询看到的要么是所有旧值，要么是所有新值，而不是新旧值的混合。

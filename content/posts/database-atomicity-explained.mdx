@@ -1,0 +1,49 @@
+---
+title: "数据库 ACID 特性之 -- 原子性 Atomicity"
+description: "介绍数据库事务原子性的定义、常见失败场景，以及 undo log、redo log 和 binlog 在保障原子性中的作用。"
+publishedAt: "2026-03-25"
+tags:
+  - mysql
+  - database
+  - systems
+draft: false
+---
+
+相关文章：[数据库 ACID 特性之 -- 原子性 Atomicity](/blog/database-atomicity-explained)、[数据库AICD特性之--隔离性 Isolation](/blog/mysql-isolation-levels-in-practice)、[数据库 ACID 特性之 -- 持久性 Durability](/blog/database-durability-explained)、[数据库AICD特性之--一致性 Consistency](/blog/database-consistency-explained)。
+
+## 数据库 ACID 特性之 – 原子性 Atomicity
+
+**原子事务是一系列不可分割且不可约的数据库操作，这些操作要么全部发生，要么不发生。**
+
+### 原子性的实现基石：undo 日志
+
+undo 日志的作用：
+
+- 在执行数据修改操作（像 INSERT、UPDATE、DELETE 等）之前，MySQL 会先把修改前的数据状态记录到 undo 日志里。要是事务需要回滚，就可以依据这些日志信息将数据恢复到初始状态。
+- 回滚流程：当事务执行失败或者用户主动发起 ROLLBACK 命令时，数据库会读取 undo 日志，按照相反的顺序执行与修改操作对应的逆操作，以此来撤销已经完成的修改。
+
+```sql
+create table t1 (c1 int, c2 varchar(20));
+
+insert into t1 values (1, 'aaa');
+START TRANSACTION;
+insert into t1 values (2, 'bbb');
+select * from INFORMATION_SCHEMA.INNODB_TRX\G
+update t1 set c2 = 'ccc' where c1 = 1;
+ROLLBACK; -- 回滚事务，操作不生效
+```
+
+![在这里插入图片描述](https://i-blog.csdnimg.cn/direct/82d6e044bd8a441f8cadf45fdda19bac.png)
+
+```sql
+START TRANSACTION;
+insert into t1 values (3, 'cccc');
+select * from INFORMATION_SCHEMA.INNODB_TRX\G
+COMMIT;
+select * from t1;
+-- 提交事务
+```
+
+![在这里插入图片描述](https://i-blog.csdnimg.cn/direct/608d0ad3a294486fb6f38a1606746117.png)
+
+![在这里插入图片描述](https://i-blog.csdnimg.cn/direct/8fd9d4a7c3854885afc624c34b286bae.png)
