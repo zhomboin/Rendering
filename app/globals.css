@@ -1094,6 +1094,21 @@ html[data-theme="dark"] .route-progress-bar {
   box-shadow: var(--shadow-glass), var(--shadow-card);
 }
 
+.search-close {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(233, 243, 255, 0.82));
+  color: var(--text-strong);
+}
+
+.search-close-icon {
+  width: 16px;
+  height: 16px;
+}
+
 .search-modal-input {
   margin-top: 18px;
 }
@@ -2389,7 +2404,17 @@ html[data-theme="dark"] .route-progress-bar {
     white-space: nowrap;
   }
 
-  .search-trigger,
+  .search-trigger {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    flex: 0 0 40px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(215, 242, 255, 0.88));
+  }
+
   .theme-toggle {
     width: 36px;
     min-width: 36px;
@@ -2423,8 +2448,12 @@ html[data-theme="dark"] .route-progress-bar {
   }
 
   .search-trigger-icon svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .search-shortcuts-row {
+    display: none;
   }
 
   .language-toggle-compact {

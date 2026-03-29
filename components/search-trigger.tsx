@@ -11,7 +11,9 @@ export function SearchTrigger({ locale = DEFAULT_LOCALE }: { locale?: string }) 
     <button
       aria-controls="site-search-dialog"
       aria-haspopup="dialog"
+      aria-label={messages.search.trigger}
       className="search-trigger"
+      title={messages.search.trigger}
       onClick={() => window.dispatchEvent(new Event(SEARCH_OPEN_EVENT))}
       type="button"
     >

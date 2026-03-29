@@ -230,8 +230,11 @@ export function SearchModal({ locale = DEFAULT_LOCALE }: { locale?: string }) {
               {messages.search.modalTitle}
             </h2>
           </div>
-          <button className="search-close" onClick={closeSearch} type="button">
-            {messages.search.modalClose}
+          <button aria-label={messages.search.modalClose} className="search-close" onClick={closeSearch} title={messages.search.modalClose} type="button">
+            <svg aria-hidden="true" className="search-close-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M7 7L17 17" stroke="currentColor" strokeLinecap="round" strokeWidth="2.2" />
+              <path d="M17 7L7 17" stroke="currentColor" strokeLinecap="round" strokeWidth="2.2" />
+            </svg>
           </button>
         </div>
 
