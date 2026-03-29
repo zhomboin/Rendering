@@ -1216,9 +1216,18 @@ html[data-theme="dark"] .route-progress-bar {
 }
 
 .footer-icon-link:hover::after,
-.footer-icon-link:focus-visible::after {
+.footer-icon-link:focus-visible::after,
+.footer-icon-link--copied::after {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+.footer-icon-link--copied {
+  border-color: rgba(162, 207, 173, 0.72);
+  box-shadow:
+    0 18px 32px rgba(176, 210, 184, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  color: rgba(73, 120, 87, 0.96);
 }
 
 @media (max-width: 560px) {

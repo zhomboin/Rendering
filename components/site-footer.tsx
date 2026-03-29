@@ -1,21 +1,14 @@
 import Link from "next/link";
+import { FooterRssButton } from "@/components/footer-rss-button";
 import { DEFAULT_LOCALE, getMessages, normalizeLocale } from "@/lib/i18n";
+import { getFeedUrl } from "@/lib/seo";
 import { getLocalizedRoute } from "@/lib/site";
 
 const GITHUB_REPO_URL = "https://github.com/zhomboin/Rendering";
-const RSS_FEED_URL = "/feed.xml";
 
-function getFooterFollowCopy(locale: string) {
-  if (locale === "zh") {
-    return {
-      github: "GitHub",
-      rss: "RSS 订阅"
-    };
-  }
-
+function getFooterFollowCopy() {
   return {
-    github: "GitHub",
-    rss: "RSS Feed"
+    github: "GitHub"
   };
 }
 
@@ -39,20 +32,11 @@ function GitHubIcon() {
   );
 }
 
-function RssIcon() {
-  return (
-    <svg aria-hidden="true" className="footer-icon" fill="none" viewBox="0 0 24 24">
-      <circle cx="6.5" cy="17.5" fill="currentColor" r="1.85" />
-      <path d="M5.2 11.2C8.83 11.2 11.8 14.17 11.8 17.8" stroke="currentColor" strokeLinecap="round" strokeWidth="2.15" />
-      <path d="M5.2 6.2C11.61 6.2 16.8 11.39 16.8 17.8" stroke="currentColor" strokeLinecap="round" strokeWidth="2.15" />
-    </svg>
-  );
-}
-
 export function SiteFooter({ locale = DEFAULT_LOCALE }: { locale?: string }) {
   const normalizedLocale = normalizeLocale(locale);
   const messages = getMessages(normalizedLocale);
-  const followCopy = getFooterFollowCopy(normalizedLocale);
+  const followCopy = getFooterFollowCopy();
+  const feedUrl = getFeedUrl();
 
   return (
     <footer className="footer">
@@ -80,17 +64,7 @@ export function SiteFooter({ locale = DEFAULT_LOCALE }: { locale?: string }) {
           >
             <GitHubIcon />
           </a>
-          <a
-            aria-label={followCopy.rss}
-            className="nav-link footer-icon-link"
-            data-tooltip={followCopy.rss}
-            href={RSS_FEED_URL}
-            rel="noreferrer"
-            target="_blank"
-            type="application/rss+xml"
-          >
-            <RssIcon />
-          </a>
+          <FooterRssButton feedUrl={feedUrl} locale={normalizedLocale} />
         </div>
       </div>
     </footer>
