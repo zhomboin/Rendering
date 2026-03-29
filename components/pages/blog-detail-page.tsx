@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { ArticleMeta } from "@/components/article-meta";
 import { getMdxComponents } from "@/components/mdx-components";
 import { PrevNextNav } from "@/components/prev-next-nav";
-import { ReadingProgress } from "@/components/reading-progress";
 import { TocPanel } from "@/components/toc-panel";
 import { getAdjacentPosts, getPostBySlug } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
@@ -79,7 +78,6 @@ export async function BlogDetailPageContent({ locale = DEFAULT_LOCALE, slug }: {
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} type="application/ld+json" />
-      <ReadingProgress locale={normalizedLocale} targetId={articleId} />
 
       <div className="article-page">
         <section className="section-band article-header-band">
@@ -106,7 +104,7 @@ export async function BlogDetailPageContent({ locale = DEFAULT_LOCALE, slug }: {
           </div>
         </article>
 
-        <TocPanel locale={normalizedLocale} sections={post.headings} />
+        <TocPanel locale={normalizedLocale} sections={post.headings} targetId={articleId} />
       </div>
     </>
   );
