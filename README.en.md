@@ -2,20 +2,21 @@
 
 [中文](./README.md)
 
-`Rendering` is a personal technical blog built with `Next.js 15`. 
+`Rendering` is a personal technical blog built with `Next.js 15`.
 
-Its current shape is: Chinese-default routes, English mirrored UI under `/en`, local `MDX` authoring, blog-page tag filtering, Pagefind search, reading-progress UX, article media modules, and static distribution / SEO foundations including RSS, manifest, JSON-LD, and dynamic OG images.
+The current repository has already completed the personal-blog implementation phase. It is a public-facing site, not a CMS, admin console, or database-backed publishing platform.
 
-## Current Status
+## Current Project Status
 
-- Current personal-blog implementation phase: complete
-- Current repository role: public personal blog frontend
-- Current publishing workflow: `Git + MDX + automated build/deploy`
+- Current phase: current personal-blog implementation is complete
+- Repository role: public site frontend + local content repository + publishing/deployment helpers
+- Publishing workflow: `Git + MDX + automated build/deploy`
+- Remaining work: production domain and hosting, final author/brand copy, final review of the first public article batch
 
-## Current Features
+## What Exists Today
 
 - Home, blog archive, article detail, and about pages
-- Chinese default routes with English mirrored UI under `/en`
+- Chinese-default routes with English mirrored UI under `/en`
 - Tag filtering inside the blog archive via `/blog?tag=...`
 - Local content repository at `content/posts/*.mdx`
 - Frontmatter-driven title, description, date, tags, and draft state
@@ -26,12 +27,33 @@ Its current shape is: Chinese-default routes, English mirrored UI under `/en`, l
 - `sitemap.xml`, `robots.txt`, `feed.xml`, and `manifest.webmanifest`
 - Site-level and article-level JSON-LD plus dynamic OG images
 - GitHub Actions CI
+- Linux + systemd deployment scripts and service/timer templates
+
+## Scope Boundaries
+
+This repository explicitly includes:
+
+- public blog pages and localized site shell
+- local MDX authoring and content validation
+- search, SEO, feed, manifest, and OG distribution infrastructure
+- reading UX, theming, and responsive presentation
+
+This repository explicitly does not include:
+
+- login and authentication
+- admin pages
+- database-backed content editing
+- CMS authoring interfaces
+- multi-author collaboration workflows
+- full platform features such as comments, analytics dashboards, or media libraries
+
+If a future CMS/admin phase starts, it should be scoped as a new stage instead of being pre-introduced into the current repository.
 
 ## Route Model
 
 - Chinese: `/`, `/blog`, `/blog/[slug]`, `/about`
 - English: `/en`, `/en/blog`, `/en/blog/[slug]`, `/en/about`
-- Tags no longer have standalone pages; they are handled through blog filtering only
+- Tags are handled through blog filtering; standalone `/tags` pages are no longer part of the current public information architecture
 
 ## Tech Stack
 
@@ -44,7 +66,21 @@ Its current shape is: Chinese-default routes, English mirrored UI under `/en`, l
 - `remark-gfm`
 - `Pagefind`
 
-## Local Development
+## Key Directories
+
+```text
+app/                  App Router pages, layouts, and metadata routes
+components/           page, interaction, and reading-experience components
+content/posts/        local MDX article repository
+content/templates/    new-post template
+lib/                  content layer, i18n, SEO, copy, and tests
+scripts/              validation, typecheck, search-index, and create-post helpers
+deploy/               Linux + systemd deployment scripts and example configs
+docs/                 PRD, development plan, launch checklist, design, and superpowers records
+public/               static assets, preview files, and Pagefind output
+```
+
+## Local Development and Verification
 
 ```bash
 npm install
@@ -55,6 +91,13 @@ npm run typecheck
 npm run build
 npm run check
 ```
+
+`npm run check` currently covers:
+
+- content validation
+- Node-based regression tests
+- typecheck
+- production build
 
 ## Publishing Workflow
 
@@ -72,16 +115,25 @@ Then:
 4. Set `draft` to `false`
 5. Commit and push to `main`
 
-## Still Required Before Public Launch
+## Deployment and Operations Docs
 
-These are not implementation gaps in the current phase; they are operational release prerequisites:
+- [Launch checklist + publishing SOP](./docs/site-launch-checklist-and-publishing-sop.zh-CN.md)
+- [Linux + systemd deployment guide](./docs/linux-systemd-deployment.zh-CN.md)
+- [Content migration guide](./docs/content-migration-guide.zh-CN.md)
+- [Playful clay design guide](./docs/playful-clay-design-guide.zh-CN.md)
 
-- final domain and hosting
-- final author identity and brand copy
-- final public about-page content
-- final review of the first public article batch
+## Canonical Docs For The Current Phase
 
-See also:
-- [docs/site-launch-checklist-and-publishing-sop.zh-CN.md](/D:/Code/Project/Rendering/Rendering/docs/site-launch-checklist-and-publishing-sop.zh-CN.md)
-- [docs/PRD.md](/D:/Code/Project/Rendering/Rendering/docs/PRD.md)
-- [docs/development-plan.md](/D:/Code/Project/Rendering/Rendering/docs/development-plan.md)
+Treat the following files as the primary source of truth for the current repository state:
+
+- [AGENTS.md](./AGENTS.md)
+- [PRD.zh-CN.md](./docs/PRD.zh-CN.md)
+- [development-plan.zh-CN.md](./docs/development-plan.zh-CN.md)
+- [PRD.md](./docs/PRD.md)
+- [development-plan.md](./docs/development-plan.md)
+
+## Historical Note
+
+The root-level `Rendering.docx` is an earlier draft that still describes a fuller stack/CMS direction. It does not match the current implemented repository.
+
+When deciding the current scope, stack, or delivery status, use this README, `AGENTS.md`, and the current-phase files in `docs/` rather than `Rendering.docx`.
