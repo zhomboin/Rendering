@@ -1139,6 +1139,102 @@ html[data-theme="dark"] .route-progress-bar {
   font-weight: 700;
 }
 
+.footer-bar .footer-links {
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.footer-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+  padding: 0;
+  line-height: 0;
+  overflow: visible;
+  border: 1px solid rgba(241, 193, 171, 0.54);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(255, 249, 244, 0.98), rgba(255, 228, 211, 0.84));
+  box-shadow:
+    0 14px 28px rgba(226, 191, 175, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  color: rgba(111, 78, 141, 0.94);
+}
+
+.footer-icon-link::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: radial-gradient(circle at 72% 26%, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 46%);
+  pointer-events: none;
+}
+
+.footer-icon-link:hover,
+.footer-icon-link:focus-visible {
+  transform: translateY(-1px) scale(1.02);
+  border-color: rgba(230, 173, 148, 0.7);
+  background: linear-gradient(145deg, rgba(255, 247, 240, 1), rgba(255, 220, 201, 0.88));
+  box-shadow:
+    0 18px 32px rgba(226, 178, 156, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  color: rgba(101, 67, 133, 0.98);
+}
+
+.footer-icon {
+  display: block;
+  position: relative;
+  z-index: 1;
+  width: 1.48rem;
+  height: 1.48rem;
+  flex: none;
+}
+
+.footer-icon-link::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 12px);
+  transform: translate(-50%, 10px);
+  z-index: 2;
+  padding: 8px 11px;
+  border: 1px solid rgba(230, 204, 189, 0.68);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 251, 247, 0.98), rgba(255, 238, 227, 0.92));
+  box-shadow: 0 14px 24px rgba(193, 166, 179, 0.2);
+  color: rgba(102, 74, 128, 0.96);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.footer-icon-link:hover::after,
+.footer-icon-link:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (max-width: 560px) {
+  .footer-icon-link {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    border-radius: 18px;
+  }
+
+  .footer-icon-link::after {
+    display: none;
+  }
+}
+
+
 .not-found {
   padding: 96px 0;
   text-align: center;
