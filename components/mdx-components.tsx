@@ -1,5 +1,10 @@
+import { ArticleCodeBlock } from "@/components/article-code-block";
 import { Figure, Gallery } from "@/components/article-media";
 import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n";
+
+function mergeClassNames(...classNames: Array<string | undefined>) {
+  return classNames.filter(Boolean).join(" ");
+}
 
 function headingId(value: string) {
   return value
@@ -34,8 +39,8 @@ export function getMdxComponents(locale = DEFAULT_LOCALE) {
     li: (props: React.HTMLAttributes<HTMLLIElement>) => <li className="article-list-item" {...props} />,
     blockquote: (props: React.HTMLAttributes<HTMLElement>) => <blockquote className="article-quote" {...props} />,
     a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a className="article-link" {...props} />,
-    pre: (props: React.HTMLAttributes<HTMLPreElement>) => <pre className="article-code-block" {...props} />,
-    code: (props: React.HTMLAttributes<HTMLElement>) => <code className="article-code" {...props} />,
+    pre: (props: React.HTMLAttributes<HTMLPreElement>) => <ArticleCodeBlock locale={normalizedLocale} {...props} />,
+    code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => <code className={mergeClassNames("article-code", className)} {...props} />,
     figure: (props: React.HTMLAttributes<HTMLElement>) => <figure className="article-figure" {...props} />,
     figcaption: (props: React.HTMLAttributes<HTMLElement>) => <figcaption className="article-figcaption" {...props} />,
     img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => <img className="article-image" loading="lazy" {...props} />
