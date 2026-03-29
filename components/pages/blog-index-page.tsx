@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PostCard } from "@/components/post-card";
-import { SearchBar } from "@/components/search-bar";
 import { splitArchivePosts } from "@/lib/archive-layout";
 import { getAllPosts, getPostsByTag, getTagSummaries } from "@/lib/content";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
@@ -148,8 +147,6 @@ export function BlogIndexPageContent({
       <section className="section archive-layout-grid">
         <aside className="archive-rail">
           <div className="archive-rail-stack">
-            <SearchBar locale={normalizedLocale} />
-
             <article className="panel archive-filter-panel">
               <div className="archive-filter-list">
                 <Link className={`tag-chip archive-filter-chip${activeTag ? "" : " archive-filter-chip--active"}`} href={getLocalizedRoute(normalizedLocale, "/blog")}>

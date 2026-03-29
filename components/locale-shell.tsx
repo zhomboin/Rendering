@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { RouteProgressBar } from "@/components/route-progress-bar";
 import { SearchModal } from "@/components/search-modal";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -11,6 +13,9 @@ export function LocaleShell({ children, locale }: { children: React.ReactNode; l
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd.website) }} type="application/ld+json" />
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd.person) }} type="application/ld+json" />
       <div className="shell">
+        <Suspense fallback={null}>
+          <RouteProgressBar />
+        </Suspense>
         <SiteHeader locale={locale} />
         <main
           data-pagefind-body={locale === "zh" ? true : undefined}

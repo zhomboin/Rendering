@@ -183,6 +183,47 @@ main {
   isolation: isolate;
 }
 
+.route-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  height: calc(3px + env(safe-area-inset-top, 0px));
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.route-progress--visible {
+  opacity: 1;
+}
+
+.route-progress-bar {
+  position: absolute;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  width: 100%;
+  height: 3px;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--accent-yellow), var(--accent-coral) 46%, var(--accent-blue));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.36),
+    0 8px 22px rgba(255, 127, 115, 0.26);
+  will-change: transform, opacity;
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+}
+
+.route-progress--complete .route-progress-bar {
+  opacity: 0;
+}
+
+html[data-theme="dark"] .route-progress-bar {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.16),
+    0 8px 24px rgba(94, 203, 255, 0.3);
+}
+
 .site-header {
   position: sticky;
   top: 16px;
@@ -2033,6 +2074,37 @@ main {
     padding-top: 22px;
   }
 
+  .archive-hero-band,
+  .archive-filter-panel,
+  .archive-filter-summary {
+    padding: 20px;
+  }
+
+  .archive-hero-band .page-title {
+    font-size: clamp(2rem, 8.8vw, 2.8rem);
+    line-height: 1.02;
+  }
+
+  .archive-hero-band .page-copy,
+  .archive-filter-summary-copy,
+  .archive-filter-note {
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .archive-filter-summary .section-title {
+    font-size: clamp(1.45rem, 6vw, 1.85rem);
+  }
+
+  .archive-filter-chip {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .archive-filter-chip-count {
+    font-size: 0.75rem;
+  }
+
   .archive-guide,
   .archive-signal-band,
   .tag-card--showcase,
@@ -2115,6 +2187,15 @@ main {
 }
 
 @media (max-width: 560px) {
+  .route-progress {
+    height: calc(2px + env(safe-area-inset-top, 0px));
+  }
+
+  .route-progress-bar {
+    height: 2px;
+    box-shadow: 0 6px 16px rgba(255, 127, 115, 0.2);
+  }
+
   .site-header {
     top: 10px;
     margin-top: 10px;
