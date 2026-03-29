@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArchiveMobileFilter } from "@/components/archive-mobile-filter";
 import { PostCard } from "@/components/post-card";
 import { splitArchivePosts } from "@/lib/archive-layout";
 import { getAllPosts, getPostsByTag, getTagSummaries } from "@/lib/content";
@@ -147,7 +148,7 @@ export function BlogIndexPageContent({
       <section className="section archive-layout-grid">
         <aside className="archive-rail">
           <div className="archive-rail-stack">
-            <article className="panel archive-filter-panel">
+            <article className="panel archive-filter-panel archive-filter-panel--desktop">
               <div className="archive-filter-list">
                 <Link className={`tag-chip archive-filter-chip${activeTag ? "" : " archive-filter-chip--active"}`} href={getLocalizedRoute(normalizedLocale, "/blog")}>
                   <span>{messages.blogArchive.allEssays}</span>
@@ -170,6 +171,15 @@ export function BlogIndexPageContent({
             </article>
           </div>
         </aside>
+
+        <ArchiveMobileFilter
+          activeTagSlug={activeTag?.slug}
+          allEssaysLabel={messages.blogArchive.allEssays}
+          allPostsCount={allPosts.length}
+          allPostsHref={getLocalizedRoute(normalizedLocale, "/blog")}
+          filterLinks={filterLinks}
+          locale={normalizedLocale}
+        />
 
         <div className="archive-main">
           {activeTag ? (
