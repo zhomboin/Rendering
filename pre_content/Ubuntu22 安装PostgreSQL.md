@@ -1,14 +1,4 @@
----
-title: "Ubuntu 22.04 安装 PostgreSQL 全流程（含踩坑 + 优化 + 远程连接）"
-description: "本文详细介绍了在 Ubuntu 22.04 上安装、配置和优化 PostgreSQL 的完整流程，包括了常见问题的解决方法和远程连接的设置。"
-publishedAt: "2026-04-07"
-tags:
-  - ubuntu
-  - postgresql
-  - database
-  - devops
-draft: false
----
+# Ubuntu 22.04 安装 PostgreSQL 全流程（含踩坑 + 优化 + 远程连接）
 
 > 适用于：个人开发 / 小型服务 / 云服务器部署
 >  环境：Ubuntu 22.04 + PostgreSQL
