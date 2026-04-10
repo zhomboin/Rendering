@@ -54,6 +54,7 @@ fail() {
 
 cleanup() {
   local exit_code=$?
+  # flock 会在文件描述符关闭时自动释放锁，此处仅清理锁文件
   rm -f "$LOCK_FILE"
   cp "$LOG_FILE" "$LATEST_LOG" 2>/dev/null || true
   find "$LOG_DIR" -maxdepth 1 -type f -name 'deploy-*.log' -mtime +"$KEEP_LOG_DAYS" -delete 2>/dev/null || true
@@ -67,16 +68,15 @@ cleanup() {
 trap cleanup EXIT
 trap 'fail "Command failed at line $LINENO: $BASH_COMMAND"' ERR
 
+# 使用 flock 实现原子锁，避免 TOCTOU 竞态条件
+LOCK_FD=9
 acquire_lock() {
-  if [[ -f "$LOCK_FILE" ]]; then
-    local existing_pid
-    existing_pid="$(cat "$LOCK_FILE" 2>/dev/null || true)"
-    if [[ -n "$existing_pid" ]] && ps -p "$existing_pid" >/dev/null 2>&1; then
-      fail "Another deployment is already running with PID $existing_pid."
-    fi
-    log "WARN" "Found stale lock file. Replacing it."
+  exec 9>"$LOCK_FILE"
+  if ! flock -n "$LOCK_FD"; then
+    fail "Another deployment is already running. Lock file: $LOCK_FILE"
   fi
-  echo "$$" > "$LOCK_FILE"
+  echo "$$" >&9
+  log "INFO" "Lock acquired (PID: $$)"
 }
 
 require_tool() {
@@ -84,6 +84,7 @@ require_tool() {
   [[ -x "$tool_path" ]] || fail "Required executable not found: $tool_path"
 }
 
+# 注意：$command 仅由脚本内部受控变量拼接，不接受外部用户输入
 run_as_app_user() {
   local command="$1"
   runuser -u "$APP_USER" -- /bin/bash -lc "cd '$REPO_DIR' && $command"
@@ -132,11 +133,21 @@ fi
 log "INFO" "Resetting working tree to $REMOTE_NAME/$BRANCH_NAME"
 run_as_app_user "$GIT_BIN reset --hard $REMOTE_NAME/$BRANCH_NAME"
 
+log "INFO" "Cleaning untracked files and directories"
+run_as_app_user "$GIT_BIN clean -fd"
+
+# git reset/clean 可能覆盖脚本的可执行权限，在此恢复
+log "INFO" "Restoring deploy script permissions"
+chmod +x "$SCRIPT_DIR/rendering-deploy.sh"
+
 log "INFO" "Installing dependencies with npm ci"
 run_as_app_user "$NPM_BIN ci"
 
 log "INFO" "Running project verification"
 run_as_app_user "$NPM_BIN run check"
+
+log "INFO" "Building project"
+run_as_app_user "$NPM_BIN run build"
 
 log "INFO" "Restarting service $WEB_SERVICE_NAME"
 /bin/systemctl restart "$WEB_SERVICE_NAME"
