@@ -13,3 +13,5 @@ worktrees
 public/pagefind
 *.log
 *.tsbuildinfo
+pre_content/
+.claude/
