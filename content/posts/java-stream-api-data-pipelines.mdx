@@ -1,0 +1,183 @@
+﻿---
+title: "Java Stream API 入门：从迭代思维切换到数据管道"
+description: "围绕 Stream 的创建、转换、截断、约简和收集，梳理 Java Stream API 最值得先掌握的那部分心智模型，并解释方法引用和惰性执行为什么重要。"
+publishedAt: "2026-04-12"
+tags:
+  - systems
+  - engineering
+draft: false
+---
+
+## Why this matters
+
+很多人第一次接触 Stream API，会把它理解成“更短的 for 循环”。这样理解不算错，但也不够。
+
+Stream 真正带来的变化，不是把若干行循环压成一行链式调用，而是把“怎么一步步做”切换成“我要对一批数据做什么转换”。这会直接影响代码可读性、组合方式和并行执行的可能性。
+
+## Functional interfaces and method references are the entry ticket
+
+Stream API 的大部分能力，都建立在函数式接口之上。最常见的几类包括：
+
+- `Supplier<T>`：提供值。
+- `Consumer<T>`：消费值。
+- `Function<T, R>`：把一个值映射成另一个值。
+- `Predicate<T>`：判断一个值是否满足条件。
+
+如果只记一件事，那就是：**Stream 接受的往往不是“某种特定实现”，而是一段可执行规则。**
+
+这也是为什么 lambda 和方法引用会大量出现。例如：
+
+```java
+list.stream()
+    .map(String::trim)
+    .filter(str -> !str.isEmpty())
+    .forEach(System.out::println);
+```
+
+方法引用本质上只是更紧凑的 lambda 写法。只有当 lambda 体里只是单纯调用某个方法，而没有额外逻辑时，它才适合被改写成方法引用。
+
+## Stream is a pipeline, not a container
+
+集合负责存储元素，Stream 负责描述处理流程。两者最重要的差别有三点：
+
+- Stream 不负责持有数据本体。
+- Stream 操作不会修改原集合。
+- 很多 Stream 操作是惰性执行的，直到终止操作发生时才真正开始跑。
+
+这意味着下面这段代码里，前面的 `filter` 和 `map` 并不会在声明那一刻立即完成：
+
+```java
+long count = list.stream()
+    .filter(str -> str.length() > 3)
+    .map(String::toUpperCase)
+    .count();
+```
+
+真正触发执行的是最后的 `count()`。如果没有终止操作，这个处理链大概率什么都不会做。
+
+## The shift from iteration to stream is about intention
+
+看一个最简单的对比：
+
+```java
+int count = 0;
+for (String str : list) {
+    if (str.length() > 3) {
+        count++;
+    }
+}
+```
+
+它完全可用，但你需要自己在脑中还原它的意图：遍历、判断、计数。
+
+换成 Stream 写法后：
+
+```java
+long count = list.stream()
+    .filter(str -> str.length() > 3)
+    .count();
+```
+
+代码直接表达的是“过滤长度大于 3 的元素，然后统计数量”。
+
+这就是 Stream 最核心的收益之一：**把业务意图提升到 API 名称层面**。你更少在意循环变量怎么走，更多在意数据流经历了哪些转换。
+
+## Creating streams is usually the easy part
+
+常见的流创建方式并不复杂：
+
+- 集合调用 `stream()`。
+- 数组使用 `Arrays.stream(...)` 或 `Stream.of(...)`。
+- 常量或固定元素直接用 `Stream.of(...)`。
+- 无限流使用 `Stream.generate(...)` 或 `Stream.iterate(...)`。
+
+例如：
+
+```java
+Stream<String> names = Stream.of("tom", "rose", "sam");
+Stream<Double> randoms = Stream.generate(Math::random);
+Stream<Integer> numbers = Stream.iterate(0, n -> n + 1);
+```
+
+无限流本身不是问题，问题在于你必须记得配合 `limit(...)` 之类的操作，否则终止操作可能永远也等不到结果。
+
+## Intermediate operations shape the pipeline
+
+中间操作负责把一个流变成另一个流。最值得先熟悉的是下面几类：
+
+- `filter`：留下满足条件的元素。
+- `map`：把元素映射成新值。
+- `flatMap`：把“元素 -> 流”的结果拍平成一条流。
+- `limit` / `skip`：截取或跳过一部分元素。
+- `distinct` / `sorted`：去重或排序。
+- `takeWhile` / `dropWhile`：按条件截取前缀或跳过前缀。
+
+例如：
+
+```java
+List<String> result = list.stream()
+    .map(String::trim)
+    .filter(str -> !str.isEmpty())
+    .distinct()
+    .sorted()
+    .toList();
+```
+
+这类代码的关键不是会不会背 API，而是你能不能把处理链分层读：
+
+1. 先做清洗。
+2. 再过滤无效值。
+3. 然后去重。
+4. 最后排序并收集。
+
+## Terminal operations turn the pipeline into a result
+
+Stream 的终止操作会把整个处理链真正执行起来，并把结果落到程序里可以继续使用的形式。最常见的包括：
+
+- `count`
+- `findFirst`
+- `findAny`
+- `anyMatch` / `allMatch` / `noneMatch`
+- `max` / `min`
+- `forEach`
+- `collect`
+
+其中 `collect(...)` 最常用，因为它几乎决定了最后要把数据收回什么结构。
+
+```java
+List<String> names = stream.collect(Collectors.toList());
+Set<String> unique = stream.collect(Collectors.toSet());
+String joined = stream.collect(Collectors.joining(", "));
+```
+
+如果把中间操作理解成“定义加工流程”，那终止操作就是“决定我要拿回什么结果”。
+
+## Parallel streams are powerful but not a default upgrade
+
+把 `stream()` 换成 `parallelStream()` 确实可能带来并行执行：
+
+```java
+long count = list.parallelStream()
+    .filter(str -> str.length() > 3)
+    .count();
+```
+
+但这不应该被当成一种默认优化。并行流只有在数据量、任务粒度、无共享副作用以及拆分成本都合适时才可能划算。
+
+如果你的处理逻辑里混入共享状态、IO 或依赖顺序的副作用，那么并行流很容易让问题更隐蔽，而不是更快。
+
+## Practical checks
+
+如果你在项目里判断一段 Stream 代码是否写得稳，可以优先检查这些点：
+
+- 有没有把 Stream 当容器使用，而忘了它只是处理管道。
+- 有没有终止操作；如果没有，前面的链路很可能根本没执行。
+- `map`、`flatMap`、`filter` 的职责是不是清晰，没有混杂副作用。
+- 是否真的需要并行流，而不是为了“看起来高级”才换成 `parallelStream()`。
+- 最终结果是不是通过合适的 `collect(...)` 或终止操作拿回来了。
+
+## Closing notes
+
+Stream API 最重要的不是记住多少个方法，而是建立一种数据管道思维：先声明处理意图，再让 API 把流程串起来。
+
+当你开始自然地区分“流从哪来、经历了哪些中间转换、最后怎样终止并收集结果”时，Stream 就不再只是语法糖，而会变成一种非常稳定的表达工具。

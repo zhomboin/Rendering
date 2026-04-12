@@ -1,0 +1,203 @@
+﻿---
+title: "Java 多态入门：把重写、重载和动态绑定一次看清"
+description: "从最基础的父类引用指向子类对象开始，梳理 Java 多态成立的条件、方法调用的实际决策过程，以及静态方法、字段和内部类为什么不遵循同样的规则。"
+publishedAt: "2026-04-12"
+tags:
+  - systems
+  - engineering
+draft: false
+---
+
+## Why this matters
+
+很多人第一次学 Java 多态时，容易把它记成一句口号：父类引用可以指向子类对象。
+
+这句话本身没错，但如果只停留在这个层面，后面一遇到重载、静态方法、字段访问、内部类或者更复杂的调用分派，结论就会开始混乱。真正需要搞清楚的不是“语法长什么样”，而是 **编译器先做了什么，运行期又补做了什么**。
+
+## Polymorphism needs three conditions
+
+Java 里的多态要稳定成立，通常至少满足三件事：
+
+- 存在继承或接口实现关系。
+- 子类对父类方法进行了重写。
+- 调用点通过父类或接口类型的引用去访问对象。
+
+一个最经典的例子就是：
+
+```java
+class Animal {
+    public void eat() {
+        System.out.println("animal need eat");
+    }
+}
+
+class Cat extends Animal {
+    @Override
+    public void eat() {
+        System.out.println("cat eat fish");
+    }
+}
+
+public class ObjectTest {
+    public static void main(String[] args) {
+        Animal animal = new Cat();
+        animal.eat();
+    }
+}
+```
+
+最终调用的是 `Cat.eat()`，不是因为变量名叫 `animal`，而是因为这个引用在运行时实际指向的是 `Cat` 对象。Java 会在运行期根据对象的真实类型完成最终分派，这就是动态绑定。
+
+## Overload resolution and dynamic dispatch are two different steps
+
+很多“多态题”让人困惑，不是因为规则复杂，而是因为它同时牵涉了 **重载解析** 和 **动态绑定** 两步。
+
+看这组更典型的代码：
+
+```java
+public class ObjectTest2 {
+    public static void main(String[] args) {
+        A a = new B();
+        B b = new B();
+        a.show(b);
+    }
+}
+
+class A {
+    public void show(D obj) {
+        System.out.println("A show D");
+    }
+
+    public void show(B obj) {
+        System.out.println("A show B");
+    }
+}
+
+class B extends A {
+    public void show(A obj) {
+        System.out.println("B show A");
+    }
+
+    public void show(B obj) {
+        System.out.println("B show B");
+    }
+}
+
+class C extends A {}
+class D {}
+```
+
+`a.show(b)` 的最终结果是 `B show B`。这个结果要拆成两步理解。
+
+### 第一步：编译期先决定“候选签名”
+
+`a` 的声明类型是 `A`，所以编译器只会先在 `A` 的可见方法里找最合适的 `show(...)`。此时实参 `b` 的静态类型是 `B`，因此编译期会先选中 `show(B)` 这个签名。
+
+这一步决定的是：**这次调用在方法表里应该对应哪个签名槽位**。
+
+### 第二步：运行期再决定“由谁来实现它”
+
+虽然签名已经在编译期定成了 `show(B)`，但真正执行时，JVM 会继续看 `a` 实际引用的对象类型。这里对象是 `B`，而 `B` 恰好重写或重新定义了 `show(B)`，所以最终落到 `B.show(B)`。
+
+把这两步拆开之后，多态题里大部分“为什么不是另一个结果”的疑惑都会消失。
+
+## Static members do not participate in dynamic dispatch
+
+多态最容易被误用的地方，是把所有成员都想成“像实例方法一样动态分派”。实际上不是。
+
+下面这段代码很适合用来区分不同成员的绑定时机：
+
+```java
+public class ObjectTest3 {
+    public static void main(String[] args) {
+        Super s = new Sub();
+        s.staticShow();
+        s.show();
+        System.out.println("s.name = " + s.name);
+
+        Super.Inner i = s.new Inner();
+        i.showInner();
+    }
+}
+
+class Super {
+    public String name = "SUPER";
+
+    public void show() {
+        System.out.println("Super show");
+    }
+
+    public static void staticShow() {
+        System.out.println("Super static show");
+    }
+
+    public class Inner {
+        public void showInner() {
+            System.out.println("Super inner show");
+        }
+    }
+}
+
+class Sub extends Super {
+    public String name = "Sub";
+
+    public void show() {
+        System.out.println("Sub show");
+    }
+
+    public static void staticShow() {
+        System.out.println("Sub static show");
+    }
+
+    public class Inner {
+        public void showInner() {
+            System.out.println("Sub inner show");
+        }
+    }
+}
+```
+
+输出结果会是：
+
+```text
+Super static show
+Sub show
+s.name = SUPER
+Super inner show
+```
+
+这里最值得记的不是结论本身，而是分类：
+
+- 实例方法 `show()` 参与动态绑定，所以运行到 `Sub.show()`。
+- 静态方法 `staticShow()` 在编译期按引用类型绑定，所以落到 `Super.staticShow()`。
+- 字段 `name` 同样按声明类型解析，不会像实例方法那样发生动态分派。
+- 内部类的选择也依赖于编译期看到的外部类型关系，不属于普通实例方法重写那套规则。
+
+换句话说，**真正参与多态的核心对象是实例方法，不是所有成员**。
+
+## The practical rule is simpler than most interview explanations
+
+如果把规则压缩成实用版本，其实可以记成下面三句：
+
+- 先用引用的声明类型决定“这次调用是否合法、候选签名是什么”。
+- 再用对象的实际类型决定“最终执行哪个实例方法实现”。
+- 静态方法、字段和大部分类型成员不参与这套动态分派。
+
+这比死记各种特殊输出题更有用，因为它能覆盖更大的代码面。
+
+## Practical checks
+
+如果你在排查一段 Java 代码到底是不是多态问题，优先按这个顺序看：
+
+- 先看引用变量的声明类型。
+- 再看实参在编译期的静态类型，确认重载解析会选中哪个签名。
+- 然后看运行时对象的真实类型，确认这个签名有没有被子类覆盖。
+- 如果成员是 `static`、字段或内部类，先停止把它当成普通动态绑定处理。
+
+很多看起来“诡异”的输出，往往不是 JVM 行为奇怪，而是把这几步混成了一步。
+
+## Closing notes
+
+多态的关键不是“父类引用指向子类对象”这句定义，而是理解 Java 在一次调用里同时做了哪些决策。
+
+只要你能把编译期的重载解析和运行期的动态绑定分开看，实例方法、静态方法、字段访问之间的差异就会非常清楚。之后再看框架里的接口回调、模板方法或者代理调用，也会顺很多。
