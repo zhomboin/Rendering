@@ -84,7 +84,7 @@ docker run --network=host
 通过 `ifconfig` 可以查看到 `docker0`。
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/57d509653f7d45ea9fc69e369c5d5f60.png"
+  src="/images/blog/redis-sentinel/image-docker0.png"
   alt="docker0 网桥信息"
   caption="通过 ifconfig 查看 docker0。"
 />
@@ -191,7 +191,7 @@ docker exec -it redis-salve1 redis-cli -a 123456
 ```
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/bd476f9b1349414696049a362887445f.png"
+  src="/images/blog/redis-sentinel/image-reject-slave-write.png"
   alt="从节点写入被拒绝"
   caption="进入 salve1 后尝试写入会被拒绝。"
 />
@@ -203,7 +203,7 @@ docker exec redis-master redis-cli -a 123456 INFO replication
 ```
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/2c4948e341854e54aa67fdbe8cc9b974.png"
+  src="/images/blog/redis-sentinel/image-check-slave-mode.png"
   alt="Redis 主从复制状态"
   caption="通过 INFO replication 查看主从复制状态。"
 />
@@ -468,7 +468,7 @@ docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-n
 ```
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/cd6c9cf17b9d453e9edbeff09ea5ac72.png"
+  src="/images/blog/redis-sentinel/image-master-info.png"
   alt="故障转移前的主节点信息"
   caption="通过 Sentinel 查询当前主节点。"
 />
@@ -486,7 +486,7 @@ docker ps
 ```
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/122a40302c494cc788d4e1a5487eefa6.png"
+  src="/images/blog/redis-sentinel/image-check-master-stoped.png"
   alt="主节点停止后的容器状态"
   caption="停止 redis-master 后查看容器列表。"
 />
@@ -498,7 +498,7 @@ docker exec -it redis-sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-n
 ```
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/666320a21f494014803b1dd38424205b.png"
+  src="/images/blog/redis-sentinel/image-check-switchover.png"
   alt="故障转移后的新主节点"
   caption="等待一段时间后，Sentinel 已完成新的主节点切换。"
 />
@@ -510,7 +510,7 @@ docker exec -it redis-salve2 redis-cli -a 123456
 ```
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/d7075df1f8fa4276a99533198fcff53d.png"
+  src="/images/blog/redis-sentinel/image-new-master-write.png"
   alt="新主节点写入验证"
   caption="登录新的主节点后确认可以执行写入操作。"
 />
@@ -522,7 +522,7 @@ docker restart redis-master
 ```
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/0c33de1e44be4dc89a4b8252894b81d6.png"
+  src="/images/blog/redis-sentinel/image-restart-old-master.png"
   alt="原主节点重新加入集群"
   caption="重新启动 redis-master 后确认节点重新加入集群。"
 />

@@ -127,7 +127,7 @@ commit;
 从结果中可以看到，事务 1 中查询到了事务 2 没有提交时修改的数据。
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/54b670419ef3463d9905afffd6836e4e.png"
+  src="/images/blog/mysql-isolation/image-read-uncommited.png"
   alt="读未提交实验结果"
   caption="事务 1 在事务 2 未提交时已经读到了修改后的数据。"
 />
@@ -178,7 +178,7 @@ COMMIT;
 可以看到，事务 1 在事务 2 修改数据后但是没有提交时，没有查询到事务 2 修改的数据，在事务 2 提交后，事务 1 就可以查询到事务 2 修改的数据。
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/3a9ade3362e14c658d638f92d78f73ba.png"
+  src="/images/blog/mysql-isolation/image-read-commited.png"
   alt="读已提交实验结果"
   caption="事务 2 提交前后，事务 1 的查询结果发生变化。"
 />
@@ -238,7 +238,7 @@ COMMIT;
 可以看到，事务 1 中的数据在事务 2 修改后查询结果仍然保持一致。
 
 <Figure
-  src="https://i-blog.csdnimg.cn/direct/15e171adfe634126a216ea056f58c647.png"
+  src="/images/blog/mysql-isolation/image-read-repeatable.png"
   alt="可重复读实验结果"
   caption="在可重复读级别下，事务 1 的查询结果保持稳定。"
 />

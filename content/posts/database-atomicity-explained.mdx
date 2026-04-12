@@ -33,7 +33,11 @@ update t1 set c2 = 'ccc' where c1 = 1;
 ROLLBACK; -- 回滚事务，操作不生效
 ```
 
-![在这里插入图片描述](https://i-blog.csdnimg.cn/direct/82d6e044bd8a441f8cadf45fdda19bac.png)
+<Figure
+  src="/images/blog/mysql-atomicity/image-rollback.png"
+  alt="rollback回滚"
+  caption="rollback回滚"
+/>
 
 ```sql
 START TRANSACTION;
@@ -44,6 +48,14 @@ select * from t1;
 -- 提交事务
 ```
 
-![在这里插入图片描述](https://i-blog.csdnimg.cn/direct/608d0ad3a294486fb6f38a1606746117.png)
+<Figure
+  src="/images/blog/mysql-atomicity/image-commit.png"
+  alt="commit 提交事务"
+  caption="commit 提交事务"
+/>
 
-![在这里插入图片描述](https://i-blog.csdnimg.cn/direct/8fd9d4a7c3854885afc624c34b286bae.png)
+<Figure
+  src="/images/blog/mysql-atomicity/image-result.png"
+  alt="执行结果查看"
+  caption="执行结果查看"
+/>
