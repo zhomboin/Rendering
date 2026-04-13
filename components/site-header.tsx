@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,6 +7,7 @@ import { getLocalizedRoute, getSiteNavigation } from "@/lib/site";
 import { LanguageToggle } from "@/components/language-toggle";
 import { SearchTrigger } from "@/components/search-trigger";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileNav } from "@/components/mobile-nav";
 
 export function SiteHeader({ locale = DEFAULT_LOCALE }: { locale?: string }) {
   const normalizedLocale = normalizeLocale(locale);
@@ -58,6 +59,7 @@ export function SiteHeader({ locale = DEFAULT_LOCALE }: { locale?: string }) {
           <SearchTrigger locale={normalizedLocale} />
           <LanguageToggle locale={normalizedLocale} />
           <ThemeToggle locale={normalizedLocale} />
+          <MobileNav locale={normalizedLocale} />
         </div>
       </div>
     </header>

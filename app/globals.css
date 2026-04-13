@@ -2233,6 +2233,10 @@ html[data-theme="dark"] .route-progress-bar {
     grid-template-columns: 1fr;
   }
 
+  .footer {
+    display: none;
+  }
+
   .archive-rail-stack {
     position: static;
   }
@@ -2625,9 +2629,126 @@ html[data-theme="dark"] .route-progress-bar {
   }
 }
 
+/* Mobile Navigation Styles */
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .nav-links {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: block;
+    position: relative;
+    z-index: 100;
+  }
+
+  .hamburger-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--surface-alt), var(--surface-strong));
+    box-shadow: var(--shadow-soft);
+    cursor: pointer;
+    transition: background 180ms ease;
+  }
+
+  .hamburger-button:hover {
+    background: linear-gradient(180deg, var(--surface-strong), var(--surface));
+  }
+
+  .hamburger-icon {
+    position: relative;
+    width: 24px;
+    height: 2px;
+    background-color: var(--text-strong);
+    transition: transform 0.3s ease;
+  }
+
+  .hamburger-icon::before,
+  .hamburger-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-strong);
+    transition: transform 0.3s ease, top 0.3s ease;
+  }
+
+  .hamburger-icon::before {
+    top: -7px;
+  }
+
+  .hamburger-icon::after {
+    top: 7px;
+  }
+  
+  .hamburger-button[aria-expanded="true"] .hamburger-icon {
+    background-color: transparent;
+  }
+
+  .hamburger-button[aria-expanded="true"] .hamburger-icon::before {
+    transform: rotate(45deg);
+    top: 0;
+  }
+
+  .hamburger-button[aria-expanded="true"] .hamburger-icon::after {
+    transform: rotate(-45deg);
+    top: 0;
+  }
+
+  .mobile-menu {
+    position: fixed;
+    top: 80px;
+    right: 16px;
+    width: 280px;
+    padding: 24px;
+    border-radius: var(--radius-md);
+    background: var(--surface-overlay);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--shadow-glass);
+    border: 1px solid var(--line-strong);
+  }
+  
+  .mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mobile-nav-link {
+    display: block;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    color: var(--text-soft);
+    transition: background 180ms ease, color 180ms ease;
+  }
+
+  .mobile-nav-link:hover {
+    background: var(--surface-soft);
+    color: var(--text-strong);
+  }
+
+  .mobile-nav-link--active {
+    background: var(--surface-accent);
+    color: var(--text-strong);
+  }
+}
+
+
 .home-hero-grid--solo {
   grid-template-columns: 1fr;
 }
+
 
 .tag-card--link {
   display: block;
@@ -2638,4 +2759,124 @@ html[data-theme="dark"] .route-progress-bar {
 .hero-panel .hero-title,
 .hero-panel .hero-copy {
   max-width: none;
+}
+
+/* Reading Progress Bar (Mobile) */
+.reading-progress-bar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 100;
+  display: none; /* Hidden by default */
+}
+
+.reading-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink), var(--accent-yellow));
+  transition: width 0.1s linear;
+}
+
+/* Table of Contents (Mobile) */
+.toc-mobile-container {
+  display: none; /* Hidden by default */
+}
+
+.toc-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface-accent);
+  color: var(--text-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lift);
+  cursor: pointer;
+  z-index: 100;
+}
+
+.toc-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 101;
+}
+
+.toc-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 60vh;
+  background: var(--surface);
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+  padding: 24px;
+  z-index: 102;
+  overflow-y: auto;
+  box-shadow: var(--shadow-glass);
+}
+
+.toc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.toc-header h3 {
+  margin: 0;
+  color: var(--text-strong);
+}
+
+.toc-header button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-soft);
+}
+
+.toc-bottom-sheet ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-bottom-sheet li a {
+  display: block;
+  padding: 12px 0;
+  color: var(--text-soft);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.toc-bottom-sheet li:last-child a {
+  border-bottom: none;
+}
+
+.toc-bottom-sheet li a:hover {
+  color: var(--text-strong);
+}
+
+
+/* Responsive styles for mobile article view */
+@media (max-width: 980px) {
+  /* Hide the desktop TOC panel and inline progress bar */
+  .toc-panel,
+  .reading-progress-inline {
+    display: none;
+  }
+
+  /* Show the mobile TOC and progress bar */
+  .reading-progress-bar-container,
+  .toc-mobile-container {
+    display: block;
+  }
 }
