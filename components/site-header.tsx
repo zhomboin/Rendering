@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DEFAULT_LOCALE, getMessages, normalizeLocale, stripLocalePrefix } from "@/lib/i18n";
@@ -33,7 +34,7 @@ export function SiteHeader({ locale = DEFAULT_LOCALE }: { locale?: string }) {
   return (
     <header className="site-header">
       <Link className="brand" href={getLocalizedRoute(normalizedLocale, "/")}>
-        <span className="brand-mark">{messages.site.brandMark}</span>
+        <Image src="/logo/icon.png" alt={messages.site.name} width={40} height={40} />
         <span className="brand-name">{messages.site.name}</span>
       </Link>
 

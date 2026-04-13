@@ -5,8 +5,6 @@ import { getMdxComponents } from "@/components/mdx-components";
 import { PrevNextNav } from "@/components/prev-next-nav";
 import { TocPanel } from "@/components/toc-panel";
 import { getAdjacentPosts, getPostBySlug } from "@/lib/content";
-import { ReadingProgressBar } from "@/components/reading-progress-bar";
-import { TableOfContents } from "@/components/table-of-contents";
 import { DEFAULT_LOCALE, getLocalizedAlternates, getLocalizedPath, getMessages, normalizeLocale } from "@/lib/i18n";
 import { buildArticleJsonLd, getArticleSocialImageUrl, getSocialImageSize } from "@/lib/seo";
 
@@ -79,9 +77,6 @@ export async function BlogDetailPageContent({ locale = DEFAULT_LOCALE, slug }: {
 
   return (
     <>
-      <ReadingProgressBar />
-      <TableOfContents toc={post.headings} locale={normalizedLocale} messages={messages} />
-
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} type="application/ld+json" />
 
       <div className="article-page">
