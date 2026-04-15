@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 import { seoConfig } from "@/lib/seo";
 import { THEME_STORAGE_KEY } from "@/lib/ui-state";
@@ -10,9 +10,9 @@ export const metadata: Metadata = {
   applicationName: seoConfig.siteName,
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/rendering.ico",
-    shortcut: "/rendering.ico",
-    apple: "/rendering.ico"
+    icon: "/logo/icon.png",
+    shortcut: "/logo/icon.png",
+    apple: "/logo/icon.png"
   }
 };
 

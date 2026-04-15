@@ -1,4 +1,4 @@
-import type { MetadataRoute } from "next";
+﻿import type { MetadataRoute } from "next";
 import { getMessages } from "@/lib/i18n";
 
 export default function manifest(): MetadataRoute.Manifest {
@@ -16,9 +16,9 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["technology", "blog", "personal"],
     icons: [
       {
-        src: "/rendering.ico",
-        sizes: "any",
-        type: "image/x-icon"
+        src: "/logo/icon.png",
+        sizes: "512x512",
+        type: "image/png"
       }
     ]
   };
