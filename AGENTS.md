@@ -85,7 +85,7 @@ components/           site shell, page, and reading-interaction components
 content/posts/        local MDX articles
 content/templates/    post template files
 lib/                  content layer, i18n, SEO, copy, tests
-public/               static assets, previews, generated Pagefind output
+public/               static assets, article images, previews, generated Pagefind output
 docs/                 PRD, development plan, launch checklist, design docs, superpowers records
 scripts/              build and verification helpers
 deploy/               Linux + systemd deployment bundle
@@ -97,6 +97,7 @@ deploy/               Linux + systemd deployment bundle
 - Keep public content access centralized in `lib/content.js`.
 - Route code should not parse MDX files directly.
 - Keep draft filtering centralized in the content layer.
+- Store article images under `public/images/blog/<slug>/` and reference them from MDX as `/images/blog/<slug>/<file>`.
 - Prefer Server Components by default and use client components only where interaction is required.
 - Preserve the current visual language in `app/globals.css`: playful outer shell, calmer reading surfaces.
 - Respect `prefers-reduced-motion`.

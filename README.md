@@ -110,10 +110,11 @@ npm run create-post -- <slug> [tag1,tag2]
 然后：
 
 1. 在 `content/posts/*.mdx` 中填写 frontmatter 与正文
-2. 本地运行 `npm run dev` 预览
-3. 运行 `npm run check`
-4. 将 `draft` 改为 `false`
-5. 提交并推送到 `main`
+2. 将文章配图放到 `public/images/blog/<slug>/`，并在 MDX 中使用 `/images/blog/<slug>/<文件名>` 引用
+3. 本地运行 `npm run dev` 预览
+4. 运行 `npm run check`
+5. 将 `draft` 改为 `false`
+6. 提交并推送到 `main`
 
 ## 部署与运营文档
 

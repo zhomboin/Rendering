@@ -147,6 +147,7 @@ npm run create-post -- mysql-locking-read mysql,innodb
 生成位置：
 
 - `content/posts/<slug>.mdx`
+- `public/images/blog/<slug>/`
 
 ### 6.2 填写 frontmatter
 
@@ -182,6 +183,12 @@ draft: true
 - 代码块
 - 图片
 - `figure / caption / gallery / lightbox`
+
+图片资源约定：
+
+- 文章配图统一放在 `public/images/blog/<slug>/`
+- MDX 中统一使用 `/images/blog/<slug>/<文件名>` 引用
+- 不要将文章图片放到 `public/posts/` 或文章源文件目录旁边的临时路径
 
 ### 6.4 本地预览
 

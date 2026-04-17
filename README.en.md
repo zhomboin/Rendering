@@ -110,10 +110,11 @@ npm run create-post -- <slug> [tag1,tag2]
 Then:
 
 1. Fill frontmatter and body in `content/posts/*.mdx`
-2. Preview locally with `npm run dev`
-3. Run `npm run check`
-4. Set `draft` to `false`
-5. Commit and push to `main`
+2. Put article images in `public/images/blog/<slug>/` and reference them as `/images/blog/<slug>/<file>`
+3. Preview locally with `npm run dev`
+4. Run `npm run check`
+5. Set `draft` to `false`
+6. Commit and push to `main`
 
 ## Deployment and Operations Docs
 
